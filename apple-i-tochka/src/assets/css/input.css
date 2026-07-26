@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================================================
+   Apple i Точка — базовые стили в стиле Apple
+   =================================================================== */
+
+@layer base {
+  :root {
+    --nav-h: 48px;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sf bg-cloud text-ink antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Аккуратный тонкий скроллбар */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+    background-clip: content-box;
+  }
+
+  ::selection {
+    background: rgba(0, 113, 227, 0.18);
+  }
+}
+
+@layer components {
+  /* Стеклянная навигация / модалки */
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl2 border border-white/40;
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    backdrop-filter: saturate(180%) blur(28px);
+  }
+
+  .glass-dark {
+    background: rgba(22, 22, 23, 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    backdrop-filter: saturate(180%) blur(28px);
+  }
+
+  /* Кнопки в стиле Apple */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-medium
+           transition-all duration-300 ease-apple select-none;
+  }
+  .btn-primary {
+    @apply btn bg-apple-blue text-white px-5 py-2.5 hover:bg-apple-blueDark
+           active:scale-[0.97] shadow-sm;
+  }
+  .btn-ghost {
+    @apply btn text-apple-blue px-4 py-2 hover:bg-apple-blue/5 active:scale-[0.97];
+  }
+  .btn-soft {
+    @apply btn bg-black/5 text-ink px-4 py-2 hover:bg-black/10 active:scale-[0.97];
+  }
+  .btn-pill {
+    @apply btn text-ink-soft px-4 py-1.5 text-sm border border-black/10
+           hover:border-black/25 hover:text-ink bg-white/60;
+  }
+  .btn-pill.is-active {
+    @apply bg-ink text-white border-ink;
+  }
+
+  /* Иконочные кнопки в шапке (избранное / сравнение) */
+  .icon-btn {
+    @apply relative grid place-items-center w-10 h-10 rounded-full text-ink-soft
+           hover:bg-black/5 active:scale-95 transition;
+  }
+  .icon-btn.is-active {
+    @apply text-brand bg-brand/10;
+  }
+
+  /* Карточка товара */
+  .card {
+    @apply relative bg-cloud-card rounded-3xl p-5 shadow-card
+           transition-all duration-300 ease-apple;
+  }
+  .card:hover {
+    @apply shadow-glass -translate-y-0.5;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .chip-green { @apply bg-apple-green/10 text-apple-green; }
+  .chip-amber { @apply bg-apple-amber/10 text-apple-amber; }
+
+  .field {
+    @apply w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-ink
+           outline-none transition focus:border-apple-blue focus:ring-4 focus:ring-apple-blue/10;
+  }
+
+  .link-muted {
+    @apply text-ink-mute hover:text-ink transition-colors;
+  }
+
+  /* Тонкая линия-разделитель как в Apple */
+  .hairline { @apply border-t border-black/[0.08]; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
