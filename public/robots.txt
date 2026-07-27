@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin.html
-
-# Sitemap: https://USERNAME.github.io/sitemap.xml
