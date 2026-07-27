@@ -501,22 +501,30 @@ function openLeadModal(productId, presetText = "") {
   const form = $("#lead-form", root);
   const status = $("#lead-status", root);
 
-  // Рендерим виджет Turnstile в модальном окне
+  // Рендерим виджет Turnstile в модальном окне с ожиданием загрузки скрипта
   let turnstileWidgetId = null;
-  if (window.turnstile && CONFIG.turnstileSiteKey) {
-    setTimeout(() => {
-      const container = $("#turnstile-container", root);
-      if (container) {
+  const renderCaptcha = (attempts = 0) => {
+    const container = $("#turnstile-container", root);
+    if (!container || !CONFIG.turnstileSiteKey) return;
+
+    if (window.turnstile) {
+      window.turnstile.ready(() => {
         try {
-          turnstileWidgetId = turnstile.render(container, {
+          container.innerHTML = ""; // Очищаем контейнер от старых элементов
+          turnstileWidgetId = window.turnstile.render(container, {
             sitekey: CONFIG.turnstileSiteKey,
           });
         } catch (err) {
           console.warn("Ошибка отрисовки Turnstile:", err);
         }
-      }
-    }, 50);
-  }
+      });
+    } else if (attempts < 20) {
+      // Если скрипт еще загружается, пробуем снова каждые 150мс (до 3 секунд)
+      setTimeout(() => renderCaptcha(attempts + 1), 150);
+    }
+  };
+
+  renderCaptcha();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
