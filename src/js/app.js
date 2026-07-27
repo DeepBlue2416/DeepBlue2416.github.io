@@ -20,8 +20,6 @@ const state = {
 // Загрузка каталога: приоритет — Worker/KV (реальное время), fallback — локальный JSON
 // ------------------------------------------------------------------
 async function loadProducts() {
-  // Встроенный каталог (data/products.js -> window.__CATALOG__).
-  // Работает и без сервера, при открытии index.html напрямую (file://).
   const embedded = window.__CATALOG__ || { products: [], categories: [] };
   try {
     if (CONFIG.apiBase) {
@@ -147,13 +145,10 @@ function esc(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Ссылка на страницу товара
 function productLink(p) {
   return `product.html?id=${encodeURIComponent(p.id)}`;
 }
 
-// Кадры для Hover Image Scrubber: если у товара есть массив images — используем их,
-// иначе синтезируем несколько ракурсов из векторного глифа (поворот/зум).
 function productFrames(p, size = 120) {
   if (Array.isArray(p.images) && p.images.length) {
     return p.images.map(
@@ -169,7 +164,6 @@ function productFrames(p, size = 120) {
   ];
 }
 
-// Область изображения с скраббером и индикаторами кадров
 function cardMedia(p) {
   const frames = productFrames(p, 120);
   return `
@@ -192,7 +186,6 @@ function cardMedia(p) {
     </div>`;
 }
 
-// Точки цветов (Color Swatch Preview) — только если у модели >1 цвета
 function colorSwatches(rep, variants) {
   const seen = new Set();
   const cols = [];
@@ -249,12 +242,12 @@ function productCard(p, variants = [p]) {
   </article>`;
 }
 
-// Группировка вариантов в модели (одна карточка на модель)
 function pickRep(variants) {
   const inStock = variants.filter((v) => v.status === "in_stock");
   const pool = inStock.length ? inStock : variants;
   return pool.slice().sort((a, b) => a.priceCash - b.priceCash)[0];
 }
+
 function groupModels(list) {
   const map = new Map();
   for (const p of list) {
@@ -263,6 +256,7 @@ function groupModels(list) {
   }
   return [...map.values()].map((variants) => ({ rep: pickRep(variants), variants }));
 }
+
 function plural(n) {
   const a = Math.abs(n) % 100, b = a % 10;
   if (a > 10 && a < 20) return `${n} моделей`;
@@ -291,7 +285,6 @@ function renderProducts() {
   $$("article[data-id]", grid).forEach(wireCard);
 }
 
-// Навешивание обработчиков на одну карточку
 function wireCard(article) {
   const byId = (id) => state.all.find((x) => x.id === id);
   const variants = state.modelVariants[article.dataset.model] || [];
@@ -323,7 +316,6 @@ function wireCard(article) {
 
   setupScrubber(article);
 
-  // Клик по карточке (вне интерактивных элементов) -> страница товара
   const goto = () => (location.href = productLink(byId(article.dataset.id) || { id: article.dataset.id }));
   article.addEventListener("click", (e) => {
     if (e.target.closest("[data-fav],[data-cmp],[data-buy],[data-swatch]")) return;
@@ -334,7 +326,6 @@ function wireCard(article) {
   });
 }
 
-// Переключение варианта цвета прямо в карточке (Color Swatch Preview)
 function setCardVariant(article, v, variants) {
   const wrap = document.createElement("div");
   wrap.innerHTML = productCard(v, variants);
@@ -351,7 +342,6 @@ function refreshCardActions(article) {
   if (cmp) { cmp.innerHTML = scaleIcon(Store.inCompare(id)); cmp.setAttribute("aria-pressed", Store.inCompare(id)); }
 }
 
-// Hover Image Scrubber: кадр зависит от положения курсора по X
 function setupScrubber(article) {
   const media = article.querySelector("[data-media]");
   if (!media) return;
@@ -494,6 +484,10 @@ function openLeadModal(productId, presetText = "") {
         <span>Я согласен на обработку персональных данных в соответствии с
           <a href="${CONFIG.legal.privacy}" class="text-apple-blue hover:underline" target="_blank">Политикой конфиденциальности</a> (152-ФЗ).</span>
       </label>
+      
+      <!-- Контейнер Cloudflare Turnstile -->
+      <div id="turnstile-container" class="my-2 flex justify-center"></div>
+
       <button type="submit" class="btn-primary w-full">Отправить заявку</button>
       <p id="lead-status" class="text-sm text-center"></p>
     </form>
@@ -503,9 +497,26 @@ function openLeadModal(productId, presetText = "") {
       <a href="tel:${CONFIG.contacts.phoneHref}" class="btn-soft text-sm">${CONFIG.contacts.phone}</a>
     </div>`;
 
-  const { close } = openModal(html);
-  const form = $("#lead-form");
-  const status = $("#lead-status");
+  const { close, root } = openModal(html);
+  const form = $("#lead-form", root);
+  const status = $("#lead-status", root);
+
+  // Рендерим виджет Turnstile в модальном окне
+  let turnstileWidgetId = null;
+  if (window.turnstile && CONFIG.turnstileSiteKey) {
+    setTimeout(() => {
+      const container = $("#turnstile-container", root);
+      if (container) {
+        try {
+          turnstileWidgetId = turnstile.render(container, {
+            sitekey: CONFIG.turnstileSiteKey,
+          });
+        } catch (err) {
+          console.warn("Ошибка отрисовки Turnstile:", err);
+        }
+      }
+    }, 50);
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -520,8 +531,14 @@ function openLeadModal(productId, presetText = "") {
       status.className = "text-sm text-center text-apple-red";
       return;
     }
+
+    // Извлекаем токен капчи
+    const cfToken = form.querySelector('[name="cf-turnstile-response"]')?.value 
+      || (window.turnstile ? turnstile.getResponse(turnstileWidgetId) : "");
+
     status.textContent = "Отправляем…";
     status.className = "text-sm text-center text-ink-mute";
+
     const payload = {
       name: data.name,
       phone: data.phone,
@@ -529,7 +546,9 @@ function openLeadModal(productId, presetText = "") {
       product: p ? `${p.name} · ${p.storage} · ${p.color}` : "—",
       price: p ? `${fmt(p.priceCash)} ${state.currency}` : "—",
       page: location.href,
+      turnstileToken: cfToken, // <--- Передаем токен воркеру
     };
+
     try {
       if (CONFIG.apiBase) {
         const r = await fetch(`${CONFIG.apiBase}/api/lead`, {
@@ -537,7 +556,12 @@ function openLeadModal(productId, presetText = "") {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        if (!r.ok) throw new Error("bad status " + r.status);
+
+        const resData = await r.json().catch(() => ({}));
+
+        if (!r.ok || resData.success === false) {
+          throw new Error(resData.error || "bad status " + r.status);
+        }
       } else {
         // Fallback без бэкенда — открываем Telegram с преднабранным текстом
         const text = encodeURIComponent(
@@ -545,14 +569,26 @@ function openLeadModal(productId, presetText = "") {
         );
         window.open(`${CONFIG.contacts.telegram}?text=${text}`, "_blank");
       }
+
       status.textContent = "Заявка отправлена! Мы скоро свяжемся с вами.";
       status.className = "text-sm text-center text-apple-green";
       form.reset();
+
+      // Сбрасываем капчу
+      if (window.turnstile) {
+        turnstile.reset(turnstileWidgetId);
+      }
+
       setTimeout(close, 1800);
     } catch (err) {
-      console.error(err);
+      console.error(" Ошибка отправки заявки:", err);
       status.textContent = "Не удалось отправить. Напишите нам в Telegram или WhatsApp.";
       status.className = "text-sm text-center text-apple-red";
+
+      // В случае ошибки сбрасываем капчу для новой попытки
+      if (window.turnstile) {
+        turnstile.reset(turnstileWidgetId);
+      }
     }
   });
 }
@@ -708,6 +744,7 @@ function updateCounters() {
   if (fc) { fc.textContent = f; fc.classList.toggle("hidden", f === 0); }
   if (cc) { cc.textContent = c; cc.classList.toggle("hidden", c === 0); }
 }
+
 function syncFavToggle() {
   const t = $("#fav-toggle");
   if (t) t.classList.toggle("is-active", state.favOnly);
@@ -773,7 +810,7 @@ function toast(msg) {
   t.textContent = msg;
   requestAnimationFrame(() => t.classList.remove("opacity-0", "translate-y-2"));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.add("opacity-0", "translate-y-2"), 2200);
+  toastTimer = setTimeout(() => t.classList.add("opacity-0", "translate-y-2"), 3000);
 }
 
 document.addEventListener("DOMContentLoaded", init);
