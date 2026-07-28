@@ -20,35 +20,48 @@
 
   <!-- ============ ШАПКА (glass nav, адаптивная) ============ -->
   <header class="sticky top-0 z-40 glass">
-    <nav class="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-3">
-      <!-- Слева: логотип + выбор города -->
-      <a href="#top" class="flex items-center gap-1.5 shrink-0" aria-label="Apple и точка">
-        <img src="./assets/logo-mark.svg" class="w-8 h-8" alt="" width="32" height="32" />
-        <span class="text-[17px] font-semibold tracking-tight leading-none hidden min-[420px]:inline">pple <span class="text-brand">и&nbsp;точка</span></span>
-      </a>
+    <nav class="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-4">
+      <!-- Слева: единый логотип + город (в одном flex, выровнены по центру) -->
+      <div class="flex items-center gap-3 shrink-0">
+        <a href="index.html" aria-label="Apple и точка" class="block shrink-0">
+          <svg class="h-7 sm:h-8 w-auto block" viewBox="0 0 392 100" role="img" aria-label="Apple и точка">
+            <svg x="0" y="14" width="72" height="72" viewBox="376 360 72 73">
+              <defs><linearGradient x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-51.535572,-51.535572,0,309.20499,323.46854)" id="lgNav"><stop stop-color="#17c9fb" offset="0"/><stop stop-color="#1a74e8" offset="1"/></linearGradient></defs>
+              <path d="m 294.724,323.468 c -6.234,0 -11.287,-5.053 -11.287,-11.286 v 0 -28.963 c 0,-6.233 5.053,-11.286 11.287,-11.286 v 0 h 28.963 c 6.233,0 11.286,5.053 11.286,11.286 v 0 28.963 c 0,6.233 -5.053,11.286 -11.286,11.286 v 0 z" transform="matrix(1.3333333,0,0,-1.3333333,0,793.70133)" fill="url(#lgNav)"/>
+              <path d="m 0,0 c 0,0 0.293,-1.492 -0.842,-1.492 h -1.134 -19.178 c -1.286,0 -2.329,1.043 -2.329,2.329 0,1.287 1.043,2.33 2.329,2.33 h 5.222 c 0.844,0.048 1.043,0.535 1.043,0.535 l 0.005,-0.002 6.816,11.806 -0.002,10e-4 c 0.125,0.228 0.021,0.443 0.003,0.477 l -2.251,3.899 c -0.643,1.114 -0.261,2.539 0.853,3.182 1.113,0.643 2.538,0.262 3.181,-0.852 l 1.044,-1.809 1.042,1.805 c 0.644,1.114 2.068,1.496 3.182,0.853 1.114,-0.643 1.496,-2.068 0.853,-3.182 L -9.649,3.451 C -9.69,3.351 -9.703,3.194 -9.394,3.166 h 5.669 L -3.723,3.111 C -3.723,3.111 -0.446,3.06 0,0 M 10.672,3.166 H 5.178 C 4.804,3.192 4.64,3.325 4.576,3.403 L 4.572,3.41 -1.31,13.598 -1.317,13.592 -1.67,14.098 c -0.578,0.884 -1.496,-1.377 -1.496,-1.377 -1.096,-2.519 0.155,-5.384 0.592,-6.25 l 8.169,-14.15 c 0.643,-1.114 2.068,-1.495 3.182,-0.852 1.114,0.643 1.495,2.068 0.852,3.182 l -2.043,3.538 c -0.039,0.085 -0.108,0.318 0.311,0.319 h 2.775 c 1.287,0 2.329,1.043 2.329,2.329 0,1.287 -1.042,2.329 -2.329,2.329 m -24.991,-7.795 0.005,-0.001 -1.762,-3.052 c -0.644,-1.114 -2.068,-1.496 -3.182,-0.852 -1.114,0.643 -1.496,2.067 -0.853,3.181 l 1.298,2.249 0.125,0.215 c 0.223,0.32 0.771,0.872 1.87,0.768 0,0 2.584,-0.28 2.771,-1.623 0,0 0.025,-0.443 -0.272,-0.885" fill="#ffffff" transform="matrix(1.3333333,0,0,-1.3333333,419.0296,406.1128)"/>
+            </svg>
+            <text x="82" y="64" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" font-weight="700" font-size="46" letter-spacing="-1"><tspan fill="#1d1d1f">pple </tspan><tspan fill="#0582F6">и точка</tspan></text>
+          </svg>
+        </a>
 
-      <div id="city-selector" class="relative shrink-0">
-        <button id="city-btn" class="inline-flex items-center gap-1 text-sm text-ink-soft hover:text-ink transition" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="map-pin" data-cls="w-4 h-4 text-brand"></i>
-          <span data-city-current class="font-medium">Таганрог</span>
-          <i data-lucide="chevron-down" data-cls="w-3.5 h-3.5 text-ink-mute"></i>
-        </button>
-        <div id="city-menu" class="hidden absolute left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 p-1.5 z-[60]"></div>
+        <div id="city-selector" class="relative shrink-0 hidden min-[380px]:block">
+          <button id="city-btn" class="inline-flex items-center gap-1 text-sm text-ink-soft hover:text-ink transition" aria-haspopup="true" aria-expanded="false">
+            <i data-lucide="map-pin" data-cls="w-4 h-4 text-brand"></i>
+            <span data-city-current class="font-medium">Таганрог</span>
+            <i data-lucide="chevron-down" data-cls="w-3.5 h-3.5 text-ink-mute"></i>
+          </button>
+          <div id="city-menu" class="hidden absolute left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 p-1.5 z-[60]"></div>
+        </div>
       </div>
 
-      <!-- Справа -->
-      <div class="flex items-center gap-1 shrink-0 ml-auto">
+      <!-- Справа: поиск + контакт-блок + избранное/сравнение -->
+      <div class="flex items-center gap-2 sm:gap-3 ml-auto">
         <button id="search-open" class="icon-btn" aria-label="Поиск">
           <i data-lucide="search" data-cls="w-5 h-5"></i>
         </button>
 
-        <a data-phone href="#" class="hidden lg:inline-flex items-center gap-1.5 px-2 text-sm font-medium text-ink hover:text-brand transition">
-          <i data-lucide="phone" data-cls="w-4 h-4"></i><span data-phone-text>+7</span>
-        </a>
-        <button id="open-callback" class="hidden md:inline-flex btn-pill text-sm">Заказать звонок</button>
+        <!-- Единый вертикальный контакт-блок -->
+        <div class="hidden lg:flex flex-col items-end leading-tight">
+          <a data-phone id="phone-longpress" href="#" class="text-[17px] font-bold text-ink hover:text-brand transition select-none" title="Нажмите, чтобы позвонить · удерживайте, чтобы скопировать"><span data-phone-text>+7</span></a>
+          <button data-open-callback class="text-[11px] font-semibold tracking-wider uppercase text-brand hover:text-ink transition">Заказать звонок</button>
+          <div class="flex items-center gap-1.5 mt-1.5">
+            <a data-vk href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#4a76a8" aria-label="ВКонтакте"><i data-lucide="vk" data-cls="w-4 h-4"></i></a>
+            <a data-tg href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#229ED9" aria-label="Telegram"><i data-lucide="send" data-cls="w-4 h-4"></i></a>
+            <a data-yt href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#FF0000" aria-label="YouTube"><i data-lucide="youtube" data-cls="w-4 h-4"></i></a>
+          </div>
+        </div>
 
-        <a data-tg href="#" target="_blank" rel="noopener" class="icon-btn hidden sm:grid" aria-label="Telegram"><i data-lucide="send" data-cls="w-5 h-5"></i></a>
-        <a data-vk href="#" target="_blank" rel="noopener" class="icon-btn hidden sm:grid" aria-label="ВКонтакте"><i data-lucide="vk" data-cls="w-5 h-5"></i></a>
+        <div class="w-px h-8 bg-black/10 hidden lg:block"></div>
 
         <button id="fav-toggle" class="icon-btn" title="Избранное" aria-label="Избранное">
           <i data-lucide="heart" data-cls="w-5 h-5"></i>
@@ -104,18 +117,15 @@
       </div>
     </section>
 
-    <!-- ============ КАТАЛОГ ============ -->
-    <section id="catalog" class="pt-6 pb-4 scroll-mt-28">
+    <!-- ============ КАТАЛОГ (иерархический) ============ -->
+    <section id="catalog" class="pt-6 pb-4 scroll-mt-24">
       <div class="flex items-end justify-between gap-4 flex-wrap">
-        <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight">Каталог</h2>
+        <div id="breadcrumb"></div>
         <span id="result-count" class="text-sm text-ink-mute"></span>
       </div>
 
-      <!-- Категории (горизонтальный скролл на мобильном) -->
-      <div id="categories" class="mt-5 flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap"></div>
-
-      <!-- Фильтры -->
-      <div id="filters" class="mt-4 flex flex-wrap items-center gap-2"></div>
+      <!-- Контекстные фильтры (видны на уровнях 2–3) -->
+      <div id="filters" class="hidden mt-4 flex flex-wrap items-center gap-2"></div>
     </section>
 
     <!-- Сетка товаров -->

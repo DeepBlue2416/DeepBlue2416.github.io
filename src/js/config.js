@@ -21,10 +21,11 @@ var CONFIG = {
     telegram: "https://t.me/your_operator",
     whatsapp: "https://wa.me/70000000000",
     vk: "https://vk.com/your_group",
+    youtube: "https://youtube.com/@your_channel",
   },
 
   // Города обслуживания (для селектора города в шапке). Первый — по умолчанию.
-  cities: ["Таганрог"],
+  cities: ["Таганрог", "Ростов-на-Дону", "Азов", "Батайск"],
 
   // Ссылки в футере (FR-5.3)
   legal: {

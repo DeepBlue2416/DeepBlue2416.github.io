@@ -10,8 +10,12 @@ const state = {
   all: [],
   categories: [],
   currency: CONFIG.currency,
-  activeCategory: "all",
-  filters: { generation: "", storage: "", color: "", sim: "" },
+  // Иерархический каталог: 1 — категории, 2 — серии/модели, 3 — модификации
+  level: 1,
+  category: "",   // выбранная категория (L2/L3)
+  series: "",     // выбранная серия (L3)
+  filters: { series: "", storage: "", watchSize: "", color: "", sim: "" },
+  sort: "new",    // new | cheap | expensive
   favOnly: false,
   searchIndex: null,
 };
@@ -36,103 +40,245 @@ async function loadProducts() {
 }
 
 // ------------------------------------------------------------------
-// Рендер категорий (FR-1.1)
+// Иерархический каталог: L1 категории → L2 серии → L3 модификации
 // ------------------------------------------------------------------
-function renderCategories() {
-  const wrap = $("#categories");
-  if (!wrap) return;
-  const all = [{ key: "all", title: "Всё" }, ...state.categories];
-  wrap.innerHTML = all
-    .map(
-      (c) =>
-        `<button class="btn-pill ${c.key === state.activeCategory ? "is-active" : ""}" data-cat="${c.key}">${c.title}</button>`
-    )
-    .join("");
-  $$("[data-cat]", wrap).forEach((b) =>
-    b.addEventListener("click", () => {
-      state.activeCategory = b.dataset.cat;
-      state.filters = { generation: "", storage: "", color: "", sim: "" };
-      renderCategories();
-      renderFilters();
-      renderProducts();
-    })
-  );
+function categoryPool() {
+  return state.category ? state.all.filter((p) => p.category === state.category) : state.all;
+}
+function uniq(pool, field) {
+  return Array.from(new Set(pool.map((p) => p[field]).filter((v) => v && v !== "—")));
+}
+function storageRank(s) {
+  const m = String(s).match(/([\d.]+)\s*(ТБ|GB|ГБ|TB)/i);
+  if (!m) return 0;
+  let n = parseFloat(m[1]);
+  if (/Т|T/i.test(m[2])) n *= 1024;
+  return n;
+}
+function uniqStorages(pool) {
+  return uniq(pool, "storage").sort((a, b) => storageRank(a) - storageRank(b));
+}
+function uniqWatchSizes(pool) {
+  return Array.from(new Set(pool.map((p) => p.watchSize).filter(Boolean)))
+    .sort((a, b) => parseInt(a) - parseInt(b));
 }
 
-// ------------------------------------------------------------------
-// Рендер фильтров (FR-1.2): поколение, память, цвет, SIM
-// ------------------------------------------------------------------
-function poolFor(field) {
-  const list =
-    state.activeCategory === "all"
-      ? state.all
-      : state.all.filter((p) => p.category === state.activeCategory);
-  return Array.from(new Set(list.map((p) => p[field]).filter((v) => v && v !== "—"))).sort();
-}
-
-function renderFilters() {
-  const wrap = $("#filters");
-  if (!wrap) return;
-  const defs = [
-    { key: "generation", label: "Поколение" },
-    { key: "storage", label: "Память" },
-    { key: "color", label: "Цвет" },
-    { key: "sim", label: "SIM" },
-  ];
-  wrap.innerHTML = defs
-    .map((d) => {
-      const opts = poolFor(d.key);
-      if (!opts.length) return "";
-      return `<label class="relative">
-        <select class="field appearance-none pr-9 text-sm py-2.5" data-filter="${d.key}">
-          <option value="">${d.label}: все</option>
-          ${opts
-            .map(
-              (o) =>
-                `<option value="${o}" ${state.filters[d.key] === o ? "selected" : ""}>${o}</option>`
-            )
-            .join("")}
-        </select>
-        <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-mute" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5l4.5 4.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-      </label>`;
-    })
-    .join("");
-
-  const reset = document.createElement("button");
-  reset.className = "btn-ghost text-sm";
-  reset.textContent = "Сбросить";
-  reset.addEventListener("click", () => {
-    state.filters = { generation: "", storage: "", color: "", sim: "" };
-    state.favOnly = false;
-    renderFilters();
-    renderProducts();
-    syncFavToggle();
+// Серии категории — строго хронологически (новые сверху)
+function seriesOfCategory(cat) {
+  const map = new Map();
+  state.all.filter((p) => p.category === cat).forEach((p) => {
+    if (!map.has(p.series)) map.set(p.series, { series: p.series, order: p.seriesOrder || 0, items: [] });
+    map.get(p.series).items.push(p);
   });
-  wrap.appendChild(reset);
-
-  $$("[data-filter]", wrap).forEach((sel) =>
-    sel.addEventListener("change", () => {
-      state.filters[sel.dataset.filter] = sel.value;
-      renderProducts();
-    })
-  );
+  return [...map.values()].sort((a, b) => b.order - a.order);
 }
 
-// ------------------------------------------------------------------
-// Фильтрация + рендер карточек
-// ------------------------------------------------------------------
-function currentList() {
-  let list = state.all.slice();
-  if (state.activeCategory !== "all")
-    list = list.filter((p) => p.category === state.activeCategory);
-  for (const [k, v] of Object.entries(state.filters)) {
-    if (v) list = list.filter((p) => p[k] === v);
-  }
+function applyFilters(list) {
+  const f = state.filters;
+  if (f.series) list = list.filter((p) => p.series === f.series);
+  if (f.storage) list = list.filter((p) => p.storage === f.storage);
+  if (f.watchSize) list = list.filter((p) => p.watchSize === f.watchSize);
+  if (f.color) list = list.filter((p) => p.color === f.color);
+  if (f.sim) list = list.filter((p) => p.sim === f.sim);
   if (state.favOnly) {
     const favs = Store.getFavorites();
     list = list.filter((p) => favs.includes(p.id));
   }
   return list;
+}
+function sortList(list) {
+  const arr = list.slice();
+  if (state.sort === "cheap") arr.sort((a, b) => a.priceCash - b.priceCash);
+  else if (state.sort === "expensive") arr.sort((a, b) => b.priceCash - a.priceCash);
+  else arr.sort((a, b) => (b.seriesOrder || 0) - (a.seriesOrder || 0) || a.priceCash - b.priceCash);
+  return arr;
+}
+
+// ---------- Роутер каталога (hash) ----------
+function parseHash() {
+  const h = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+  const cat = h.get("cat") || "";
+  const series = h.get("series") || "";
+  if (!cat) { state.level = 1; state.category = ""; state.series = ""; }
+  else if (!series) { state.level = 2; state.category = cat; state.series = ""; }
+  else { state.level = 3; state.category = cat; state.series = series; }
+  state.filters = { series: "", storage: "", watchSize: "", color: "", sim: "" };
+}
+function navigate({ level, category, series }) {
+  state.level = level;
+  state.category = category || "";
+  state.series = series || "";
+  state.filters = { series: "", storage: "", watchSize: "", color: "", sim: "" };
+  const parts = [];
+  if (state.category) parts.push("cat=" + encodeURIComponent(state.category));
+  if (state.series) parts.push("series=" + encodeURIComponent(state.series));
+  const target = parts.length ? "#" + parts.join("&") : "#catalog";
+  history.pushState(null, "", target);
+  renderCatalog();
+  $("#catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ---------- Хлебные крошки ----------
+function renderBreadcrumb() {
+  const el = $("#breadcrumb");
+  if (!el) return;
+  const c = [`<button class="hover:text-ink transition ${state.level === 1 ? "text-ink font-semibold" : ""}" data-nav-home>Каталог</button>`];
+  if (state.level >= 2) c.push(`<span>/</span>`, `<button class="hover:text-ink transition ${state.level === 2 ? "text-ink font-semibold" : ""}" data-nav-cat>${esc(state.category)}</button>`);
+  if (state.level >= 3) c.push(`<span>/</span>`, `<span class="text-ink font-semibold">${esc(state.series)}</span>`);
+  el.innerHTML = `<nav class="flex items-center gap-2 text-sm text-ink-mute flex-wrap">${c.join("")}</nav>`;
+  $("[data-nav-home]", el)?.addEventListener("click", () => navigate({ level: 1 }));
+  $("[data-nav-cat]", el)?.addEventListener("click", () => navigate({ level: 2, category: state.category }));
+}
+
+// ---------- Диспетчер ----------
+function renderCatalog() {
+  renderBreadcrumb();
+  const filters = $("#filters");
+  if (state.level === 1) {
+    filters?.classList.add("hidden");
+    renderCategoryTiles();
+  } else {
+    filters?.classList.remove("hidden");
+    renderFilters();
+    if (state.level === 2) renderSeriesTiles();
+    else renderModifications();
+  }
+}
+// renderProducts — совместимость: перерисовать текущий уровень
+function renderProducts() { renderCatalog(); }
+
+// L1 — плашки категорий
+function renderCategoryTiles() {
+  const grid = $("#grid");
+  if (!grid) return;
+  $("#grid-empty")?.classList.add("hidden");
+  grid.className = "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5";
+  const count = (key) => state.all.filter((p) => p.category === key).length;
+  grid.innerHTML = state.categories
+    .map(
+      (c) => `
+    <button class="cat-tile" data-cat-tile="${esc(c.key)}" style="--accent:${c.accent || "#0582F6"}">
+      <div class="cat-tile-art">${deviceGlyph({ category: c.glyph || "accessory", colorHex: "#ffffff" }, 88)}</div>
+      <div class="mt-3 flex items-end justify-between gap-2">
+        <span class="font-semibold text-base sm:text-lg leading-tight">${c.title}</span>
+        <span class="text-xs text-ink-mute whitespace-nowrap">${count(c.key)}</span>
+      </div>
+    </button>`
+    )
+    .join("");
+  if ($("#result-count")) $("#result-count").textContent = `${state.categories.length} категорий`;
+  $$("[data-cat-tile]", grid).forEach((b) => b.addEventListener("click", () => navigate({ level: 2, category: b.dataset.catTile })));
+}
+
+// L2 — серии/модели категории
+function renderSeriesTiles() {
+  const grid = $("#grid");
+  if (!grid) return;
+  grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5";
+  let series = seriesOfCategory(state.category)
+    .map((s) => ({ ...s, filtered: applyFilters(s.items) }))
+    .filter((s) => s.filtered.length);
+  if (!series.length) {
+    grid.innerHTML = "";
+    $("#grid-empty")?.classList.remove("hidden");
+    if ($("#result-count")) $("#result-count").textContent = "0 моделей";
+    return;
+  }
+  $("#grid-empty")?.classList.add("hidden");
+  if ($("#result-count")) $("#result-count").textContent = plural(series.length, "модель", "модели", "моделей");
+  grid.innerHTML = series
+    .map((s) => {
+      const inStock = s.filtered.some((p) => p.status === "in_stock");
+      const rep = pickRep(s.filtered);
+      const from = Math.min(...s.filtered.map((p) => p.priceCash));
+      return `
+    <button class="card text-left" data-series-tile="${esc(s.series)}">
+      <div class="h-40 rounded-2xl overflow-hidden bg-cloud grid place-items-center">${deviceGlyph(rep, 96)}</div>
+      <div class="mt-4 flex items-start justify-between gap-2">
+        <div>
+          <h3 class="font-semibold text-lg leading-tight">${esc(s.series)}</h3>
+          <p class="text-sm text-ink-mute mt-0.5">${plural(s.filtered.length, "товар", "товара", "товаров")}</p>
+        </div>
+        ${inStock
+          ? `<span class="chip chip-green shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-apple-green"></span>В наличии</span>`
+          : `<span class="chip chip-amber shrink-0">Под заказ</span>`}
+      </div>
+      <div class="mt-3 text-sm"><span class="text-ink-mute">от</span> <span class="font-semibold text-base">${fmt(from)} ${state.currency}</span></div>
+    </button>`;
+    })
+    .join("");
+  $$("[data-series-tile]", grid).forEach((b) => b.addEventListener("click", () => navigate({ level: 3, category: state.category, series: b.dataset.seriesTile })));
+}
+
+// L3 — модификации серии (карточка на каждый цвет)
+function renderModifications() {
+  const grid = $("#grid");
+  if (!grid) return;
+  grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5";
+  let list = sortList(applyFilters(state.all.filter((p) => p.series === state.series && p.category === state.category)));
+  const byColor = new Map();
+  list.forEach((p) => { if (!byColor.has(p.colorHex)) byColor.set(p.colorHex, []); byColor.get(p.colorHex).push(p); });
+  const cards = [...byColor.values()].map((vs) => ({ rep: pickRep(vs), variants: vs }));
+  if (!cards.length) {
+    grid.innerHTML = "";
+    $("#grid-empty")?.classList.remove("hidden");
+    if ($("#result-count")) $("#result-count").textContent = "0 товаров";
+    return;
+  }
+  $("#grid-empty")?.classList.add("hidden");
+  if ($("#result-count")) $("#result-count").textContent = plural(list.length, "вариант", "варианта", "вариантов");
+  state.modelVariants = {};
+  cards.forEach((c) => (state.modelVariants[c.rep.name] = c.variants));
+  grid.innerHTML = cards.map((c) => productCard(c.rep, c.variants)).join("");
+  $$("article[data-id]", grid).forEach(wireCard);
+}
+
+// ---------- Контекстные фильтры + сортировка ----------
+function renderFilters() {
+  const wrap = $("#filters");
+  if (!wrap) return;
+  const pool = categoryPool();
+  const isWatch = state.category === "Смарт-часы";
+  const defs = [
+    { key: "series", label: "Поколение", values: seriesOfCategory(state.category).map((s) => s.series) },
+    !isWatch && { key: "storage", label: "Память", values: uniqStorages(pool) },
+    isWatch && { key: "watchSize", label: "Размер корпуса", values: uniqWatchSizes(pool) },
+    { key: "color", label: "Цвет", values: uniq(pool, "color") },
+    { key: "sim", label: "SIM", values: uniq(pool, "sim") },
+  ].filter(Boolean).filter((d) => d.values.length);
+
+  const chev = `<svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-mute" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 7.5l4.5 4.5 4.5-4.5" stroke-linecap="round"/></svg>`;
+  const select = (key, label, values) => `<label class="relative">
+      <select class="field appearance-none pr-9 text-sm py-2.5" data-filter="${key}">
+        <option value="">${label}: все</option>
+        ${values.map((o) => `<option value="${esc(o)}" ${state.filters[key] === o ? "selected" : ""}>${o}</option>`).join("")}
+      </select>${chev}</label>`;
+
+  const sortSel = `<label class="relative ml-auto">
+      <select class="field appearance-none pr-9 text-sm py-2.5" data-sort>
+        <option value="new" ${state.sort === "new" ? "selected" : ""}>Сначала новые</option>
+        <option value="cheap" ${state.sort === "cheap" ? "selected" : ""}>Сначала дешевле</option>
+        <option value="expensive" ${state.sort === "expensive" ? "selected" : ""}>Сначала дороже</option>
+      </select>${chev}</label>`;
+
+  wrap.innerHTML = defs.map((d) => select(d.key, d.label, d.values)).join("") + sortSel;
+
+  const reset = document.createElement("button");
+  reset.className = "btn-ghost text-sm";
+  reset.textContent = "Сбросить";
+  reset.addEventListener("click", () => {
+    state.filters = { series: "", storage: "", watchSize: "", color: "", sim: "" };
+    state.favOnly = false;
+    syncFavToggle();
+    renderCatalog();
+  });
+  wrap.appendChild(reset);
+
+  const rerenderGrid = () => (state.level === 2 ? renderSeriesTiles() : renderModifications());
+  $$("[data-filter]", wrap).forEach((sel) =>
+    sel.addEventListener("change", () => { state.filters[sel.dataset.filter] = sel.value; rerenderGrid(); })
+  );
+  $("[data-sort]", wrap)?.addEventListener("change", (e) => { state.sort = e.target.value; rerenderGrid(); });
 }
 
 function statusBadge(status) {
@@ -314,32 +460,14 @@ function groupModels(list) {
   return [...map.values()].map((variants) => ({ rep: pickRep(variants), variants }));
 }
 
-function plural(n) {
+function plural(n, one = "модель", few = "модели", many = "моделей") {
   const a = Math.abs(n) % 100, b = a % 10;
-  if (a > 10 && a < 20) return `${n} моделей`;
-  if (b === 1) return `${n} модель`;
-  if (b >= 2 && b <= 4) return `${n} модели`;
-  return `${n} моделей`;
-}
-
-function renderProducts() {
-  const grid = $("#grid");
-  const empty = $("#grid-empty");
-  if (!grid) return;
-  const list = currentList();
-  const models = groupModels(list);
-  state.modelVariants = {};
-  models.forEach((m) => (state.modelVariants[m.rep.name] = m.variants));
-
-  $("#result-count") && ($("#result-count").textContent = plural(models.length));
-  if (!models.length) {
-    grid.innerHTML = "";
-    empty && empty.classList.remove("hidden");
-    return;
+  let w = many;
+  if (a < 11 || a > 14) {
+    if (b === 1) w = one;
+    else if (b >= 2 && b <= 4) w = few;
   }
-  empty && empty.classList.add("hidden");
-  grid.innerHTML = models.map((m) => productCard(m.rep, m.variants)).join("");
-  $$("article[data-id]", grid).forEach(wireCard);
+  return `${n} ${w}`;
 }
 
 function wireCard(article) {
@@ -443,7 +571,11 @@ function scaleIcon(active) {
 }
 function deviceGlyph(p, size = 96) {
   const c = p.colorHex || "#c9c9cf";
-  const cat = p.category;
+  let cat = p.category;
+  // телефоны других брендов рисуем как смартфон
+  if (["Samsung", "Xiaomi", "Nothing Phone"].includes(cat)) cat = "iPhone";
+  if (cat === "Наушники") cat = "AirPods";
+  if (cat === "Смарт-часы") cat = "Watch";
   const common = `width="${size}" height="${size}" viewBox="0 0 96 96" fill="none"`;
   if (cat === "iPhone")
     return `<svg ${common}><rect x="30" y="12" width="36" height="72" rx="9" fill="${c}" stroke="rgba(0,0,0,.12)"/><rect x="41" y="16" width="14" height="4" rx="2" fill="rgba(0,0,0,.18)"/></svg>`;
@@ -904,6 +1036,47 @@ function setupCookieBanner() {
 }
 
 // ------------------------------------------------------------------
+// Телефон: тап → звонок, долгое зажатие → копирование в буфер + тост
+// ------------------------------------------------------------------
+function setupPhoneLongPress() {
+  const el = $("#phone-longpress");
+  if (!el) return;
+  el.href = `tel:${CONFIG.contacts.phoneHref}`;
+  let timer = null, longFired = false;
+
+  const copy = async () => {
+    longFired = true;
+    const num = CONFIG.contacts.phone;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(num);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = num; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        document.execCommand("copy"); ta.remove();
+      }
+      toast("Номер скопирован");
+    } catch { toast("Не удалось скопировать"); }
+  };
+  const start = () => { longFired = false; timer = setTimeout(copy, 550); };
+  const cancel = () => { clearTimeout(timer); };
+
+  // touch
+  el.addEventListener("touchstart", start, { passive: true });
+  el.addEventListener("touchend", cancel);
+  el.addEventListener("touchmove", cancel);
+  // mouse (desktop): ЛКМ удержание
+  el.addEventListener("mousedown", (e) => { if (e.button === 0) start(); });
+  el.addEventListener("mouseup", cancel);
+  el.addEventListener("mouseleave", cancel);
+  // клик: если было долгое зажатие — не переходить по tel:
+  el.addEventListener("click", (e) => { if (longFired) { e.preventDefault(); longFired = false; } });
+  // правый клик тоже копирует
+  el.addEventListener("contextmenu", (e) => { e.preventDefault(); copy(); });
+}
+
+// ------------------------------------------------------------------
 // Speed dial — плавающая кнопка выбора способа связи
 // ------------------------------------------------------------------
 function setupSpeedDial() {
@@ -964,6 +1137,7 @@ async function init() {
   $$("[data-tg]").forEach((el) => (el.href = CONFIG.contacts.telegram));
   $$("[data-wa]").forEach((el) => (el.href = CONFIG.contacts.whatsapp));
   $$("[data-vk]").forEach((el) => (el.href = CONFIG.contacts.vk || "#"));
+  $$("[data-yt]").forEach((el) => (el.href = CONFIG.contacts.youtube || "#"));
   $$("[data-privacy]").forEach((el) => (el.href = CONFIG.legal.privacy));
   $$("[data-offer]").forEach((el) => (el.href = CONFIG.legal.offer));
 
@@ -976,11 +1150,14 @@ async function init() {
   if (data.meta?.currency) state.currency = data.meta.currency;
   state.searchIndex = SmartSearch.build(state.all);
 
-  renderCategories();
-  renderFilters();
-  renderProducts();
+  // Иерархический каталог (уровень из hash)
+  parseHash();
+  renderCatalog();
+  window.addEventListener("popstate", () => { parseHash(); renderCatalog(); });
+
   setupSearch();
   setupCitySelector();
+  setupPhoneLongPress();
   setupCookieBanner();
   setupSpeedDial();
   updateCounters();
@@ -995,7 +1172,8 @@ async function init() {
   $("#fav-toggle")?.addEventListener("click", () => {
     state.favOnly = !state.favOnly;
     syncFavToggle();
-    renderProducts();
+    if (state.level === 1) navigate({ level: 2, category: state.categories[0]?.key });
+    else renderCatalog();
   });
 
   window.addEventListener("compare:limit", () =>

@@ -29,7 +29,8 @@ apple-i-tochka/
 │   ├── favicon.svg
 │   └── robots.txt
 ├── scripts/
-│   └── build.js
+│   ├── build.js
+│   └── gen-catalog.mjs
 ├── src/
 │   ├── assets/
 │   │   ├── css/
@@ -37,6 +38,7 @@ apple-i-tochka/
 │   │   │   └── tailwind.css
 │   │   ├── fonts/
 │   │   │   └── README.md
+│   │   ├── logo-full.svg
 │   │   ├── logo-icon.svg
 │   │   └── logo-mark.svg
 │   ├── data/
@@ -63,6 +65,7 @@ apple-i-tochka/
 │   ├── index.js
 │   └── wrangler.toml
 ├── .gitignore
+├── CHANGELOG.md
 ├── README.md
 ├── package.json
 └── tailwind.config.js

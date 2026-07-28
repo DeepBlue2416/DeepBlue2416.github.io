@@ -110,6 +110,17 @@
     @apply text-brand bg-brand/10;
   }
 
+  /* Плашки категорий (L1 каталога) */
+  .cat-tile {
+    @apply relative bg-cloud-card rounded-3xl p-4 shadow-card text-left
+           transition-all duration-300 ease-apple;
+  }
+  .cat-tile:hover { @apply shadow-glass -translate-y-0.5; }
+  .cat-tile-art {
+    @apply grid place-items-center h-28 sm:h-32 rounded-2xl;
+    background-image: linear-gradient(140deg, var(--accent, #0582F6), rgba(0, 0, 0, 0.4));
+  }
+
   /* Точки выбора цвета (Color Swatch Preview) */
   .swatch {
     @apply w-5 h-5 rounded-full ring-2 ring-transparent transition;
@@ -118,6 +129,12 @@
   }
   .swatch:hover { transform: scale(1.12); }
   .swatch.is-active { @apply ring-brand; }
+
+  /* Цветные круглые иконки соцсетей в шапке */
+  .soc-ic {
+    @apply grid place-items-center w-7 h-7 rounded-full text-white transition
+           hover:opacity-90 active:scale-95;
+  }
 
   /* Speed dial — выбор способа связи */
   .sd-fab {
