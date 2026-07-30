@@ -85,6 +85,18 @@ const Store = {
     emit("compare:change", { list: [], id: null, active: false });
   },
 
+  // Очистка «мёртвых» id (товар удалён из каталога) — иначе их не убрать из UI
+  pruneMissing(validIds) {
+    const valid = new Set(validIds);
+    let changed = false;
+    const fav = this.getFavorites().filter((id) => valid.has(id));
+    if (fav.length !== this.getFavorites().length) { write(KEYS.fav, fav); changed = true; }
+    const cmp = this.getCompare().filter((id) => valid.has(id));
+    if (cmp.length !== this.getCompare().length) { write(KEYS.cmp, cmp); changed = true; }
+    if (changed) { emit("favorites:change", { list: fav }); emit("compare:change", { list: cmp }); }
+    return changed;
+  },
+
   // ---------- Cookie-согласие (FR-5.2) ----------
   hasCookieConsent() {
     return read(KEYS.consent, false) === true;

@@ -65,6 +65,7 @@ apple-i-tochka/
 │   ├── index.js
 │   └── wrangler.toml
 ├── .gitignore
+├── ADMIN.md
 ├── CHANGELOG.md
 ├── README.md
 ├── package.json

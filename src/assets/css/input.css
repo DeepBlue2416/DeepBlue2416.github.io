@@ -121,6 +121,13 @@
     background-image: linear-gradient(140deg, var(--accent, #0582F6), rgba(0, 0, 0, 0.4));
   }
 
+  /* Плашки серий (L2) — мягкая заливка цветом категории, чтобы было понятно,
+     что это всё ещё выбор категории/модели */
+  .series-art {
+    background-color: var(--accent, #0582F6);
+    background-image: linear-gradient(140deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.72));
+  }
+
   /* Точки выбора цвета (Color Swatch Preview) */
   .swatch {
     @apply w-5 h-5 rounded-full ring-2 ring-transparent transition;

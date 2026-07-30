@@ -128,6 +128,17 @@ async function verifyTurnstile(token, env, ip) {
   }
 }
 
+// Rate limit через KV: не более LIMIT заявок с одного IP за WINDOW секунд.
+async function rateLimited(env, ip) {
+  if (!env.PRODUCTS || !ip) return false; // нет KV/IP → пропускаем
+  const LIMIT = 5, WINDOW = 60;
+  const key = `rl:${ip}`;
+  const cur = parseInt((await env.PRODUCTS.get(key)) || "0", 10);
+  if (cur >= LIMIT) return true;
+  await env.PRODUCTS.put(key, String(cur + 1), { expirationTtl: WINDOW });
+  return false;
+}
+
 async function handleLead(request, env, cors) {
   const data = await request.json().catch(() => null);
   if (!data || !data.name || !data.phone) {
@@ -136,6 +147,12 @@ async function handleLead(request, env, cors) {
 
   // Проверка капчи Cloudflare Turnstile (защита от спама)
   const ip = request.headers.get("CF-Connecting-IP") || "";
+
+  // Ограничение частоты (анти-спам)
+  if (await rateLimited(env, ip)) {
+    return json({ success: false, error: "rate_limited", message: "Слишком много заявок. Попробуйте через минуту." }, 429, cors);
+  }
+
   const ok = await verifyTurnstile(data.turnstileToken, env, ip);
   if (!ok) {
     return json({ success: false, error: "captcha_failed" }, 403, cors);

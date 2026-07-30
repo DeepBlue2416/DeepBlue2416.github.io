@@ -19,9 +19,9 @@ var CONFIG = {
     phone: "+7 900 172-36-35",
     phoneHref: "+79001723635",
     telegram: "https://t.me/your_operator",
-    whatsapp: "https://wa.me/70000000000",
+    whatsapp: "https://wa.me/79001723635",
     vk: "https://vk.com/your_group",
-    youtube: "https://youtube.com/@your_channel",
+    max: "https://max.ru/your_account", // мессенджер MAX
   },
 
   // Города обслуживания (для селектора города в шапке). Первый — по умолчанию.

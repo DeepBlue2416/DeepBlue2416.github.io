@@ -175,9 +175,14 @@ function renderSeriesTiles() {
   const grid = $("#grid");
   if (!grid) return;
   grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5";
+  const accent = state.categories.find((c) => c.key === state.category)?.accent || "#0582F6";
   let series = seriesOfCategory(state.category)
-    .map((s) => ({ ...s, filtered: applyFilters(s.items) }))
+    .map((s) => ({ ...s, filtered: applyFilters(s.items), from: Math.min(...applyFilters(s.items).map((p) => p.priceCash)) }))
     .filter((s) => s.filtered.length);
+  // Сортировка серий (работает на 2-м уровне)
+  if (state.sort === "cheap") series.sort((a, b) => a.from - b.from);
+  else if (state.sort === "expensive") series.sort((a, b) => b.from - a.from);
+  else series.sort((a, b) => b.order - a.order); // новые
   if (!series.length) {
     grid.innerHTML = "";
     $("#grid-empty")?.classList.remove("hidden");
@@ -190,10 +195,10 @@ function renderSeriesTiles() {
     .map((s) => {
       const inStock = s.filtered.some((p) => p.status === "in_stock");
       const rep = pickRep(s.filtered);
-      const from = Math.min(...s.filtered.map((p) => p.priceCash));
+      const from = s.from;
       return `
     <button class="card text-left" data-series-tile="${esc(s.series)}">
-      <div class="h-40 rounded-2xl overflow-hidden bg-cloud grid place-items-center">${deviceGlyph(rep, 96)}</div>
+      <div class="series-art h-40 rounded-2xl overflow-hidden grid place-items-center" style="--accent:${accent}">${deviceGlyph(rep, 96)}</div>
       <div class="mt-4 flex items-start justify-between gap-2">
         <div>
           <h3 class="font-semibold text-lg leading-tight">${esc(s.series)}</h3>
@@ -685,7 +690,11 @@ function openModal(html, opts = {}) {
       </div>
     </div>`;
   scrollLock(true);
-  const close = () => { root.innerHTML = ""; scrollLock(false); };
+  const close = () => {
+    try { opts.onClose && opts.onClose(); } catch (e) {}
+    root.innerHTML = "";
+    scrollLock(false);
+  };
   $("[data-overlay-bg]", root).addEventListener("click", close);
   $("[data-close]", root).addEventListener("click", close);
   document.addEventListener("keydown", function esc(e) {
@@ -727,13 +736,15 @@ function openLeadModal(productId, presetText = "") {
       <a href="tel:${CONFIG.contacts.phoneHref}" class="btn-soft text-sm">${CONFIG.contacts.phone}</a>
     </div>`;
 
-  const { close, root } = openModal(html);
+  let turnstileWidgetId = null;
+  const { close, root } = openModal(html, {
+    onClose: () => { if (window.turnstile && turnstileWidgetId != null) { try { turnstile.remove(turnstileWidgetId); } catch (e) {} } },
+  });
   const form = $("#lead-form", root);
   const status = $("#lead-status", root);
   attachPhoneMask(form.querySelector('[name="phone"]'));
 
   // Рендерим виджет Turnstile в модальном окне
-  let turnstileWidgetId = null;
   if (window.turnstile && CONFIG.turnstileSiteKey) {
     setTimeout(() => {
       const container = $("#turnstile-container", root);
@@ -945,12 +956,14 @@ function openCallbackModal() {
       <button type="submit" class="btn-primary w-full">Жду звонка</button>
       <p id="cb-status" class="text-sm text-center"></p>
     </form>`;
-  const { close, root } = openModal(html);
+  let wid = null;
+  const { close, root } = openModal(html, {
+    onClose: () => { if (window.turnstile && wid != null) { try { turnstile.remove(wid); } catch (e) {} } },
+  });
   const form = $("#cb-form", root);
   const status = $("#cb-status", root);
   attachPhoneMask(form.querySelector('[name="phone"]'));
 
-  let wid = null;
   if (window.turnstile && CONFIG.turnstileSiteKey) {
     setTimeout(() => { try { wid = turnstile.render($("#turnstile-cb", root), { sitekey: CONFIG.turnstileSiteKey }); } catch (e) {} }, 50);
   }
@@ -1137,7 +1150,7 @@ async function init() {
   $$("[data-tg]").forEach((el) => (el.href = CONFIG.contacts.telegram));
   $$("[data-wa]").forEach((el) => (el.href = CONFIG.contacts.whatsapp));
   $$("[data-vk]").forEach((el) => (el.href = CONFIG.contacts.vk || "#"));
-  $$("[data-yt]").forEach((el) => (el.href = CONFIG.contacts.youtube || "#"));
+  $$("[data-max]").forEach((el) => (el.href = CONFIG.contacts.max || "#"));
   $$("[data-privacy]").forEach((el) => (el.href = CONFIG.legal.privacy));
   $$("[data-offer]").forEach((el) => (el.href = CONFIG.legal.offer));
 
@@ -1149,6 +1162,9 @@ async function init() {
   state.categories = data.categories || [];
   if (data.meta?.currency) state.currency = data.meta.currency;
   state.searchIndex = SmartSearch.build(state.all);
+
+  // Убираем из избранного/сравнения товары, которых больше нет в каталоге
+  Store.pruneMissing(state.all.map((p) => p.id));
 
   // Иерархический каталог (уровень из hash)
   parseHash();
