@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Политика конфиденциальности · Apple i Точка</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./assets/css/tailwind.css" />
+</head>
+<body class="bg-cloud text-ink">
+  <div class="mx-auto max-w-3xl px-5 py-14">
+    <a href="/index.html" class="text-apple-blue text-sm hover:underline">← На главную</a>
+    <h1 class="mt-4 text-3xl font-semibold tracking-tight">Политика конфиденциальности</h1>
+    <p class="text-ink-mute mt-2">в отношении обработки персональных данных (152-ФЗ)</p>
+
+    <div class="mt-8 space-y-5 text-ink-soft leading-relaxed text-[15px]">
+      <p>Настоящая Политика определяет порядок обработки и защиты персональных данных пользователей сайта <b data-brand>Apple i Точка</b> (далее — Оператор).</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">1. Какие данные мы собираем</h2>
+      <p>При отправке заявки через формы сайта Оператор обрабатывает: имя и номер телефона, а также комментарий и сведения о выбранном товаре. Дополнительно могут обрабатываться технические данные (cookie, тип устройства) для корректной работы сайта.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">2. Цели обработки</h2>
+      <p>Данные используются исключительно для обратной связи по заявке, консультации, оформления заказа и информирования о статусе. Оператор не передаёт данные третьим лицам, кроме случаев, предусмотренных законодательством РФ.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">3. Правовое основание</h2>
+      <p>Обработка осуществляется на основании согласия субъекта персональных данных, которое пользователь предоставляет, устанавливая соответствующий чекбокс перед отправкой формы.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">4. Хранение и защита</h2>
+      <p>Оператор принимает необходимые организационные и технические меры для защиты данных от неправомерного доступа. Срок хранения — до достижения целей обработки либо до отзыва согласия.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">5. Права пользователя</h2>
+      <p>Пользователь вправе запросить сведения об обработке своих данных, потребовать их уточнения или удаления, а также отозвать согласие, обратившись к Оператору по указанным на сайте контактам.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">6. Файлы cookie</h2>
+      <p>Сайт использует cookie для сохранения пользовательских настроек (избранное, сравнение) и корректной работы. Продолжая пользоваться сайтом, вы соглашаетесь с их использованием.</p>
+
+      <p class="pt-4 text-ink-mute text-sm">Контакт для обращений: <a data-phone href="#" class="text-apple-blue">+7 000 000-00-00</a>. Реквизиты Оператора: <i>укажите ИП/ООО, ИНН, адрес</i>.</p>
+    </div>
+  </div>
+  <script src="./js/config.js"></script>
+  <script>
+    document.querySelectorAll("[data-brand]").forEach(e => e.textContent = CONFIG.brand);
+    document.querySelectorAll("[data-phone]").forEach(e => { e.textContent = CONFIG.contacts.phone; if (e.tagName==="A") e.href = "tel:"+CONFIG.contacts.phoneHref; });
+  </script>
+</body>
+</html>

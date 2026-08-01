@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Публичная оферта · Apple i Точка</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./assets/css/tailwind.css" />
+</head>
+<body class="bg-cloud text-ink">
+  <div class="mx-auto max-w-3xl px-5 py-14">
+    <a href="/index.html" class="text-apple-blue text-sm hover:underline">← На главную</a>
+    <h1 class="mt-4 text-3xl font-semibold tracking-tight">Публичная оферта</h1>
+    <p class="text-ink-mute mt-2">Условия продажи товаров</p>
+
+    <div class="mt-8 space-y-5 text-ink-soft leading-relaxed text-[15px]">
+      <h2 class="text-xl font-semibold text-ink pt-2">1. Общие положения</h2>
+      <p>Настоящий документ является публичной офертой <b data-brand>Apple i Точка</b> (далее — Продавец) и содержит условия приобретения товаров. Оформление заявки означает согласие покупателя с условиями оферты.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">2. Товар и цена</h2>
+      <p>Продавец реализует технику Apple и аксессуары. Цена «наличными» указывается для оплаты наличными денежными средствами. Цена «картой / в кредит» включает комиссию эквайринга и применяется при безналичной оплате или оформлении рассрочки. Все цены указаны в рублях и могут быть изменены Продавцом до момента подтверждения заказа.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">3. Оформление заказа</h2>
+      <p>Заявка оформляется через формы сайта или мессенджеры. После получения заявки оператор связывается с покупателем для подтверждения наличия, цены и условий получения товара.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">4. Trade-In</h2>
+      <p>Оценка стоимости выкупа устройства в калькуляторе Trade-In носит предварительный характер. Итоговая сумма определяется после бесплатной диагностики устройства в магазине и не является публичной офертой.</p>
+
+      <h2 class="text-xl font-semibold text-ink pt-2">5. Гарантия и возврат</h2>
+      <p>Гарантийные обязательства и порядок возврата регулируются Законом РФ «О защите прав потребителей». Подробные условия предоставляются при оформлении покупки.</p>
+
+      <p class="pt-4 text-ink-mute text-sm">Реквизиты Продавца: <i>укажите ИП/ООО, ИНН, ОГРН, адрес и контакты</i>.</p>
+    </div>
+  </div>
+  <script src="./js/config.js"></script>
+  <script>
+    document.querySelectorAll("[data-brand]").forEach(e => e.textContent = CONFIG.brand);
+  </script>
+</body>
+</html>
