@@ -20,7 +20,7 @@ var CONFIG = {
     phoneHref: "+79001723635",
     telegram: "https://t.me/your_operator",
     whatsapp: "https://wa.me/79001723635",
-    vk: "https://vk.com/your_group",
+    vk: "https://vk.ru/appleitochka_tgn",
     max: "https://max.ru/your_account", // мессенджер MAX
   },
 
