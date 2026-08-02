@@ -55,6 +55,21 @@
   }
   const statusText = (v) => (STATUS.find((s) => s.v === v) || {}).t || v || "—";
 
+  // Пресеты памяти и размера часов: реальные значения каталога + базовый набор +
+  // текущее значение. Показываем в выпадающем списке (datalist), но можно ввести своё.
+  const STORAGE_BASE = ["64 ГБ", "128 ГБ", "256 ГБ", "512 ГБ", "1 ТБ", "2 ТБ"];
+  const WATCH_BASE = ["40 мм", "42 мм", "44 мм", "46 мм", "49 мм"];
+  function presetList(field, base, current) {
+    const out = [];
+    const push = (v) => { if (v != null && v !== "" && v !== "—" && !out.includes(v)) out.push(v); };
+    (state.catalog && state.catalog.products || []).forEach((p) => push(p[field]));
+    base.forEach(push);
+    push(current);
+    // сортировка по объёму (ГБ/ТБ) или по мм
+    const rank = (s) => { const m = String(s).match(/([\d.]+)\s*(ТБ|TB|ГБ|GB|мм|mm)/i); if (!m) return 1e9; let n = parseFloat(m[1]); if (/Т|T/i.test(m[2])) n *= 1024; return n; };
+    return out.sort((a, b) => rank(a) - rank(b));
+  }
+
   // ---------- Состояние ----------
   const state = {
     token: "",
@@ -563,8 +578,10 @@
         ${field("Образец цвета", `<input type="color" class="adm-input h-10 p-1" data-f="colorHex" value="${/^#[0-9a-f]{6}$/i.test(d.colorHex) ? d.colorHex : "#888888"}"/>`)}
       </div>
       <div class="grid grid-cols-2 gap-3">
-        ${field("Память", `<input class="adm-input" data-f="storage" value="${esc(d.storage || "")}" placeholder="256 ГБ"/>`)}
-        ${field("Размер (часы, мм)", `<input class="adm-input" data-f="watchSize" value="${esc(d.watchSize || "")}" placeholder="напр. 45 мм"/>`)}
+        ${field("Память", `<input class="adm-input" data-f="storage" list="preset-storage" value="${esc(d.storage || "")}" placeholder="256 ГБ" autocomplete="off"/>
+          <datalist id="preset-storage">${presetList("storage", STORAGE_BASE, d.storage).map((s) => `<option value="${esc(s)}"></option>`).join("")}</datalist>`)}
+        ${field("Размер (часы, мм)", `<input class="adm-input" data-f="watchSize" list="preset-watch" value="${esc(d.watchSize || "")}" placeholder="напр. 45 мм" autocomplete="off"/>
+          <datalist id="preset-watch">${presetList("watchSize", WATCH_BASE, d.watchSize).map((s) => `<option value="${esc(s)}"></option>`).join("")}</datalist>`)}
       </div>
       ${field("SIM", `<select class="adm-input" data-f="sim">${simOpts}</select>`)}
       <div class="grid grid-cols-2 gap-3">
