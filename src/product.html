@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Товар — Apple и точка</title>
+  <meta name="description" content="Карточка товара Apple и точка" />
+  <meta name="theme-color" content="#FAF9F6" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon.ico" sizes="32x32 48x48" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="./assets/css/tailwind.css" />
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("ait-theme");
+        if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        if (t === "dark") document.documentElement.classList.add("dark");
+      } catch (e) {}
+    })();
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body class="min-h-screen">
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 glass">
+    <nav class="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-3">
+      <a href="index.html" class="block shrink-0" aria-label="Apple и точка">
+        <svg class="h-10 sm:h-12 w-auto block" viewBox="0 0 392 100" role="img" aria-label="Apple и точка">
+          <svg x="0" y="14" width="72" height="72" viewBox="376 360 72 73">
+            <defs><linearGradient x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-51.535572,-51.535572,0,309.20499,323.46854)" id="lgP"><stop stop-color="#17c9fb" offset="0"/><stop stop-color="#1a74e8" offset="1"/></linearGradient></defs>
+            <path d="m 294.724,323.468 c -6.234,0 -11.287,-5.053 -11.287,-11.286 v 0 -28.963 c 0,-6.233 5.053,-11.286 11.287,-11.286 v 0 h 28.963 c 6.233,0 11.286,5.053 11.286,11.286 v 0 28.963 c 0,6.233 -5.053,11.286 -11.286,11.286 v 0 z" transform="matrix(1.3333333,0,0,-1.3333333,0,793.70133)" fill="url(#lgP)"/>
+            <path d="m 0,0 c 0,0 0.293,-1.492 -0.842,-1.492 h -1.134 -19.178 c -1.286,0 -2.329,1.043 -2.329,2.329 0,1.287 1.043,2.33 2.329,2.33 h 5.222 c 0.844,0.048 1.043,0.535 1.043,0.535 l 0.005,-0.002 6.816,11.806 -0.002,10e-4 c 0.125,0.228 0.021,0.443 0.003,0.477 l -2.251,3.899 c -0.643,1.114 -0.261,2.539 0.853,3.182 1.113,0.643 2.538,0.262 3.181,-0.852 l 1.044,-1.809 1.042,1.805 c 0.644,1.114 2.068,1.496 3.182,0.853 1.114,-0.643 1.496,-2.068 0.853,-3.182 L -9.649,3.451 C -9.69,3.351 -9.703,3.194 -9.394,3.166 h 5.669 L -3.723,3.111 C -3.723,3.111 -0.446,3.06 0,0 M 10.672,3.166 H 5.178 C 4.804,3.192 4.64,3.325 4.576,3.403 L 4.572,3.41 -1.31,13.598 -1.317,13.592 -1.67,14.098 c -0.578,0.884 -1.496,-1.377 -1.496,-1.377 -1.096,-2.519 0.155,-5.384 0.592,-6.25 l 8.169,-14.15 c 0.643,-1.114 2.068,-1.495 3.182,-0.852 1.114,0.643 1.495,2.068 0.852,3.182 l -2.043,3.538 c -0.039,0.085 -0.108,0.318 0.311,0.319 h 2.775 c 1.287,0 2.329,1.043 2.329,2.329 0,1.287 -1.042,2.329 -2.329,2.329 m -24.991,-7.795 0.005,-0.001 -1.762,-3.052 c -0.644,-1.114 -2.068,-1.496 -3.182,-0.852 -1.114,0.643 -1.496,2.067 -0.853,3.181 l 1.298,2.249 0.125,0.215 c 0.223,0.32 0.771,0.872 1.87,0.768 0,0 2.584,-0.28 2.771,-1.623 0,0 0.025,-0.443 -0.272,-0.885" fill="#ffffff" transform="matrix(1.3333333,0,0,-1.3333333,419.0296,406.1128)"/>
+          </svg>
+          <text x="82" y="64" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" font-weight="700" font-size="46" letter-spacing="-1"><tspan class="logo-ink">pple </tspan><tspan fill="#0582F6">и точка</tspan></text>
+        </svg>
+      </a>
+      <div class="flex items-center gap-1 ml-auto">
+        <button id="search-open" class="icon-btn" aria-label="Поиск"><i data-lucide="search" data-cls="w-5 h-5"></i></button>
+        <button data-theme-toggle class="icon-btn" aria-label="Сменить тему" title="Светлая / тёмная тема">
+          <svg data-theme-sun class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg data-theme-moon class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <a href="index.html#catalog" class="btn-pill text-sm inline-flex items-center gap-1"><i data-lucide="arrow-left" data-cls="w-4 h-4"></i> В каталог</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Оверлей поиска -->
+  <div id="search-overlay" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" data-search-bg></div>
+    <div class="relative bg-white shadow-2xl">
+      <div class="mx-auto max-w-2xl px-4 py-3 flex items-center gap-2">
+        <i data-lucide="search" data-cls="w-5 h-5 text-ink-mute"></i>
+        <input id="search-input" type="search" placeholder="Поиск: айфон 16 256 титан…" autocomplete="off" class="flex-1 bg-transparent outline-none text-base py-2" />
+        <button id="search-close" class="icon-btn" aria-label="Закрыть"><i data-lucide="x" data-cls="w-5 h-5"></i></button>
+      </div>
+      <div id="search-results" class="mx-auto max-w-2xl px-2 pb-4 max-h-[70vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <main class="mx-auto max-w-6xl px-4 py-8">
+    <div id="product-root" class="min-h-[80vh]"><div class="py-24 text-center text-ink-mute">Загрузка…</div></div>
+  </main>
+
+  <!-- ФУТЕР -->
+  <footer class="hairline">
+    <div class="mx-auto max-w-6xl px-4 py-10 text-sm text-ink-mute">
+      <div class="flex flex-col sm:flex-row justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <img src="./assets/logo-mark.svg" class="w-6 h-6" alt="" width="24" height="24" />
+            <span class="font-semibold text-ink">pple <span class="text-brand">и точка</span></span>
+          </div>
+          <p class="mt-2 max-w-xs">Магазин техники Apple в городе <span data-city>ваш город</span>. Не является официальным сайтом Apple Inc.</p>
+        </div>
+        <nav class="flex flex-col gap-2">
+          <a data-privacy href="privacy.html" class="link-muted">Политика конфиденциальности</a>
+          <a data-offer href="offer.html" class="link-muted">Публичная оферта</a>
+          <a data-tg href="#" target="_blank" class="link-muted">Telegram</a>
+          <a data-phone href="#" class="link-muted">+7 000 000-00-00</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Speed dial -->
+  <div id="speeddial" class="fixed right-4 bottom-4 z-[54] flex flex-col items-end gap-3">
+    <div id="sd-actions" class="flex flex-col items-end gap-2.5">
+      <a data-tg href="#" target="_blank" rel="noopener" class="sd-item">Telegram
+        <span class="sd-ic" style="background:#229ED9"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M21.9 4.3l-3.1 14.6c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1 1.4 11.6c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z"/></svg></span>
+      </a>
+      <a data-wa href="#" target="_blank" rel="noopener" class="sd-item">WhatsApp
+        <span class="sd-ic" style="background:#25D366"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.8.7.7-2.7-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1-.9-.4-1.7-1-2.3-1.9-.2-.3.2-.3.5-.9.1-.1 0-.3 0-.4l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.7.7-.9 1.6-.6 2.6.5 1.6 1.6 2.9 3.2 3.7 1.9 1 2.4.8 2.9.8.5 0 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg></span>
+      </a>
+      <a data-phone href="#" class="sd-item">Позвонить
+        <span class="sd-ic" style="background:#0582F6"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.2c1.1.4 2.3.6 3.6.6a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.6 3.6a1 1 0 01-.2 1l-2.3 2.2z"/></svg></span>
+      </a>
+    </div>
+    <button id="sd-toggle" class="sd-fab" aria-label="Связаться" aria-expanded="false">
+      <svg class="sd-open w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 01-12.5 7.5L3 20l1.5-4.5A8.5 8.5 0 1121 11.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="sd-close w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div id="modal-root"></div>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/icons.js"></script>
+  <script src="./data/products.js"></script>
+  <script src="./js/storage.js"></script>
+  <script src="./js/search.js"></script>
+  <!-- compare.js и trade-in.js грузятся лениво по требованию (ensureScript) -->
+  <script src="./js/app.js"></script>
+  <script src="./js/product.js"></script>
+</body>
+</html>
