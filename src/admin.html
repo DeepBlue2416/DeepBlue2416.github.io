@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>CRM · Apple и точка</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon.ico" sizes="32x32 48x48" />
+  <link rel="stylesheet" href="./assets/css/tailwind.css" />
+  <!-- Тёмная тема временно отключена: принудительно светлая. -->
+  <script>
+    (function () { try { document.documentElement.classList.remove("dark"); } catch (e) {} })();
+  </script>
+</head>
+<body class="min-h-screen bg-cloud text-ink font-sf">
+
+  <!-- ============ ЭКРАН ВХОДА ============ -->
+  <section id="login" class="min-h-screen grid place-items-center px-4">
+    <div class="glass w-full max-w-sm rounded-3xl shadow-pop p-8 animate-scale-in">
+      <div class="flex items-center gap-2 text-brand">
+        <span id="login-logo" class="grid place-items-center w-9 h-9 rounded-xl bg-brand/10"></span>
+        <div>
+          <h1 class="text-xl font-semibold tracking-tight text-ink">CRM · <span data-brand>Apple и точка</span></h1>
+          <p class="text-ink-mute text-xs">Управление каталогом, ценами и наличием</p>
+        </div>
+      </div>
+      <form id="login-form" class="mt-6 space-y-4">
+        <label class="block">
+          <span class="adm-label">Токен доступа (ADMIN_TOKEN)</span>
+          <input id="token" type="password" class="field" placeholder="Введите токен оператора" autocomplete="off" />
+        </label>
+        <label class="block">
+          <span class="adm-label">API — URL воркера (необязательно)</span>
+          <input id="api" type="url" class="field" placeholder="https://…workers.dev" />
+        </label>
+        <button class="btn-primary w-full">Войти</button>
+        <p id="login-status" class="text-sm text-ink-mute min-h-5"></p>
+      </form>
+      <p class="mt-4 text-xs text-ink-mute leading-relaxed">
+        Токен хранится только в памяти вкладки и стирается при перезагрузке. Без URL воркера
+        панель откроется в демо-режиме: можно всё редактировать, а результат — скачать файлом каталога.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ ПАНЕЛЬ ============ -->
+  <section id="app" class="hidden min-h-screen">
+    <!-- Верхняя панель -->
+    <header class="sticky top-0 z-30 glass border-b border-black/[0.06]">
+      <div class="mx-auto max-w-6xl px-4 h-14 flex items-center gap-3">
+        <div class="flex items-center gap-2 mr-2">
+          <span id="top-logo" class="grid place-items-center w-8 h-8 rounded-lg bg-brand/10 text-brand"></span>
+          <span class="font-semibold tracking-tight hidden sm:block">CRM</span>
+        </div>
+
+        <span id="dirty-badge" class="chip chip-amber hidden">
+          <span class="w-1.5 h-1.5 rounded-full bg-apple-amber"></span>
+          <span id="dirty-text">Есть несохранённые изменения</span>
+        </span>
+
+        <div class="ml-auto flex items-center gap-1">
+          <button id="btn-undo" class="adm-icbtn" title="Отменить (Ctrl+Z)" disabled></button>
+          <button id="btn-redo" class="adm-icbtn" title="Повторить (Ctrl+Y)" disabled></button>
+          <span class="w-px h-6 bg-black/10 mx-1"></span>
+          <button data-theme-toggle class="adm-icbtn" title="Светлая / тёмная тема" aria-label="Сменить тему">
+            <svg data-theme-sun class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg data-theme-moon class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+          <span class="w-px h-6 bg-black/10 mx-1"></span>
+          <div class="relative" id="more-wrap">
+            <button id="btn-more" class="adm-icbtn" title="Ещё"></button>
+            <div id="more-menu" class="hidden absolute right-0 mt-2 w-60 bg-cloud-card rounded-2xl shadow-pop border border-black/[0.06] p-1.5 z-40">
+              <button data-more="seed" class="w-full text-left text-sm rounded-xl px-3 py-2 hover:bg-black/5">Синхронизировать KV со встроенным каталогом</button>
+              <button data-more="export" class="w-full text-left text-sm rounded-xl px-3 py-2 hover:bg-black/5">Скачать каталог (products.js)</button>
+              <button data-more="reload" class="w-full text-left text-sm rounded-xl px-3 py-2 hover:bg-black/5">Перезагрузить с сервера</button>
+              <div class="hairline my-1"></div>
+              <button data-more="logout" class="w-full text-left text-sm rounded-xl px-3 py-2 text-apple-red hover:bg-apple-red/5">Выйти</button>
+            </div>
+          </div>
+          <button id="btn-save" class="btn-primary text-sm ml-1" disabled>Сохранить</button>
+        </div>
+      </div>
+
+      <!-- Вкладки -->
+      <div class="mx-auto max-w-6xl px-4 pb-3 flex items-center gap-2">
+        <button class="adm-tab is-active" data-tab="products"><span data-ic="package"></span>Товары</button>
+        <button class="adm-tab" data-tab="categories"><span data-ic="layers"></span>Категории</button>
+        <button class="adm-tab" data-tab="history"><span data-ic="clock"></span>История</button>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 py-5">
+      <!-- ---- Вкладка: Товары ---- -->
+      <div id="tab-products">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="relative flex-1 min-w-[200px]">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-mute" data-ic="search"></span>
+            <input id="p-search" class="field pl-10 py-2.5" placeholder="Поиск: модель, цвет, память, id…" />
+          </div>
+          <select id="p-catfilter" class="adm-input w-auto py-2.5"></select>
+          <button id="p-add" class="btn-primary text-sm whitespace-nowrap"><span data-ic="plus"></span>Добавить товар</button>
+        </div>
+        <p id="p-count" class="text-xs text-ink-mute mb-3"></p>
+        <div id="p-list" class="space-y-2"></div>
+      </div>
+
+      <!-- ---- Вкладка: Категории ---- -->
+      <div id="tab-categories" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-semibold tracking-tight">Категории каталога</h2>
+            <p class="text-xs text-ink-mute">Добавляйте, переименовывайте и меняйте порядок. Удаление можно отменить (Ctrl+Z).</p>
+          </div>
+          <button id="c-add" class="btn-primary text-sm whitespace-nowrap"><span data-ic="plus"></span>Категория</button>
+        </div>
+        <div id="c-list" class="space-y-2 max-w-2xl"></div>
+      </div>
+
+      <!-- ---- Вкладка: История ---- -->
+      <div id="tab-history" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-semibold tracking-tight">История версий</h2>
+            <p class="text-xs text-ink-mute">Снимки каталога на сервере. Восстановление создаёт резервную копию текущей версии.</p>
+          </div>
+          <button id="h-reload" class="btn-pill text-sm">Обновить</button>
+        </div>
+        <div id="h-list" class="space-y-2 max-w-2xl"></div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ============ БОКОВОЙ РЕДАКТОР ТОВАРА ============ -->
+  <div id="drawer-scrim" class="drawer-scrim"></div>
+  <aside id="drawer" class="drawer-panel">
+    <div class="flex items-center gap-3 px-5 h-14 border-b border-black/[0.06] shrink-0">
+      <h3 id="drawer-title" class="font-semibold tracking-tight">Товар</h3>
+      <button id="drawer-close" class="adm-icbtn ml-auto" title="Закрыть"></button>
+    </div>
+    <div id="drawer-body" class="flex-1 overflow-y-auto px-5 py-4"></div>
+    <div class="flex items-center gap-2 px-5 py-3 border-t border-black/[0.06] shrink-0 bg-cloud">
+      <button id="drawer-delete" class="btn-soft text-sm text-apple-red mr-auto"><span data-ic="trash"></span>Удалить</button>
+      <button id="drawer-cancel" class="btn-pill text-sm">Отмена</button>
+      <button id="drawer-apply" class="btn-primary text-sm">Применить</button>
+    </div>
+  </aside>
+
+  <!-- Тост -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] hidden">
+    <div class="glass-dark text-white text-sm rounded-full px-5 py-2.5 shadow-pop"></div>
+  </div>
+
+  <script src="./js/config.js"></script>
+  <script src="./data/products.js"></script>
+  <script src="./js/admin.js"></script>
+</body>
+</html>

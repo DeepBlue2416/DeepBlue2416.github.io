@@ -1,0 +1,35 @@
+# Конфигурация Cloudflare Worker (Free tier)
+# Документация: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "apple-i-tochka-api"
+main = "index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+# --- KV namespace для хранения цен и остатков в реальном времени ---
+# Создать: npx wrangler kv namespace create PRODUCTS
+# Затем подставить выданный id ниже.
+kv_namespaces = [
+  { binding = "PRODUCTS", id = "REPLACE_WITH_KV_ID", preview_id = "REPLACE_WITH_PREVIEW_KV_ID" }
+]
+
+# --- Публичные (несекретные) переменные ---
+[vars]
+# Разрешённые Origin для CORS (через запятую). Пропишите ваш github.io и/или домен.
+ALLOWED_ORIGINS = "https://USERNAME.github.io,http://localhost:5173,http://127.0.0.1:5173"
+
+# =====================================================================
+# СЕКРЕТЫ (НЕ хранить в этом файле!). Задаются командами:
+#   npx wrangler secret put TELEGRAM_BOT_TOKEN
+#   npx wrangler secret put TELEGRAM_CHAT_ID
+#   npx wrangler secret put ADMIN_TOKEN
+#   npx wrangler secret put TURNSTILE_SECRET
+#   npx wrangler secret put TG_WEBHOOK_SECRET   # (для кнопок под лидом)
+# ADMIN_TOKEN — пароль/токен доступа к CRM (/admin.html).
+# TURNSTILE_SECRET — секретный ключ Cloudflare Turnstile (проверка капчи заявок).
+#   Если не задан — проверка капчи пропускается (для локального/демо-режима).
+# TG_WEBHOOK_SECRET — произвольная строка (openssl rand -hex 16). После деплоя
+#   один раз зарегистрируйте webhook, чтобы кнопки под заявками работали:
+#   curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=<WORKER_URL>/api/tg/webhook&secret_token=<TG_WEBHOOK_SECRET>"
+#   Кнопки: 🟢 В работе / ✅ Закрыт / 🚫 Отказ · ⛔ Блокировать · 🗑 Удалить спам.
+# =====================================================================
