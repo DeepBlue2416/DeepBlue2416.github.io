@@ -7,7 +7,7 @@ var CONFIG = {
   city: "Таганрог",
 
   // Базовый URL Cloudflare Worker (без завершающего /).
-  apiBase: "https://apple-orders-api.overkraken2416.workers.dev", // <-- Укажите URL вашего воркера
+  apiBase: "https://api.appleitochka.ru", // <-- Укажите URL вашего воркера
   // Пусто "" -> сайт работает офлайн на встроенном каталоге (data/products.js).
 
   // Публичный ключ Cloudflare Turnstile (Site Key)
