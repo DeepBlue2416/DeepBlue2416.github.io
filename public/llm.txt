@@ -1,0 +1,35 @@
+# Apple и точка
+
+> Магазин оригинальной техники Apple и смежных брендов в Таганроге: iPhone, Samsung,
+> iPad, MacBook, Apple Watch и смарт-часы, наушники/AirPods, аксессуары, PlayStation.
+> Продажа, Trade-In (обмен старого на новое), рассрочка 0-0-12, гарантия магазина,
+> доставка по городу и самовывоз.
+
+## Об организации
+- Название: Apple и точка
+- Город: Таганрог, Россия
+- Сайт: https://appleitochka.ru
+- Не является официальным сайтом Apple Inc.
+
+## Ключевые факты
+- Оригинальная техника с гарантией магазина.
+- Наличие: в наличии и под заказ за 1 день.
+- Цена каждой модели указана в карточке товара; способ оплаты — наличными, картой или в рассрочку.
+- Trade-In: онлайн-оценка + бесплатная диагностика в магазине.
+- Рассрочка: 0-0-12.
+
+## Разделы
+- Каталог: https://appleitochka.ru/ (категории: iPhone, Samsung, iPad, MacBook, Смарт-часы, Наушники, Аксессуары, PlayStation)
+- Карточка товара (чистый URL): https://appleitochka.ru/p/<id>/
+- Частые вопросы (FAQ): https://appleitochka.ru/#faq
+- Политика конфиденциальности: https://appleitochka.ru/privacy.html
+- Публичная оферта: https://appleitochka.ru/offer.html
+
+## Данные для интеграций
+- Актуальные цены и наличие (JSON): https://api.appleitochka.ru/api/products
+- Товарный фид (Google Merchant): https://appleitochka.ru/feed-google.xml
+- Товарный фид (Yandex YML): https://appleitochka.ru/feed-yandex.yml
+- Карта сайта: https://appleitochka.ru/sitemap.xml
+
+## Контакты
+- Телефон, Telegram и WhatsApp указаны на сайте (в шапке и футере).

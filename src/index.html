@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Apple и точка — магазин техники Apple в Таганроге</title>
+  <meta name="description" content="Оригинальная техника Apple: iPhone, Mac, Watch, iPad, AirPods и аксессуары. Наличие, Trade-In, доставка. Быстро и удобно." />
+  <meta name="theme-color" content="#FAF9F6" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon.ico" sizes="32x32 48x48" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="./assets/css/tailwind.css" />
+  <!-- Тёмная тема временно отключена: принудительно светлая. -->
+  <script>
+    (function () { try { document.documentElement.classList.remove("dark"); } catch (e) {} })();
+  </script>
+  <meta property="og:title" content="Apple и точка" />
+  <meta property="og:description" content="Оригинальная техника Apple в вашем городе" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://appleitochka.ru/" />
+  <link rel="canonical" href="https://appleitochka.ru/" />
+  <!-- Статическая микроразметка (видна ботам без JS; JS её дополняет) -->
+  <script type="application/ld+json" id="ld-store">
+  {"@context":"https://schema.org","@type":"Store","name":"Apple и точка","url":"https://appleitochka.ru/","image":"https://appleitochka.ru/apple-touch-icon.png","telephone":"+7 900 172-36-35","priceRange":"₽₽","areaServed":"Таганрог","address":{"@type":"PostalAddress","streetAddress":"площадь Мира, 7","addressLocality":"Таганрог","addressCountry":"RU"},"description":"Магазин оригинальной техники Apple в Таганроге: iPhone, Mac, iPad, Apple Watch, AirPods. Trade-In, рассрочка, гарантия, доставка."}
+  </script>
+  
+  <!-- Cloudflare Turnstile API -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body class="min-h-screen">
+
+  <!-- ============ ШАПКА (glass nav, адаптивная) ============ -->
+  <header class="sticky top-0 z-40 glass">
+    <nav class="mx-auto max-w-6xl px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
+      <!-- Слева: единый логотип + город (в одном flex, выровнены по центру) -->
+      <div class="flex items-center gap-3 shrink-0">
+        <a href="/" aria-label="Apple и точка" class="block shrink-0">
+          <img src="./assets/logo-full.svg" alt="Apple и точка" class="h-8 sm:h-12 w-auto block" width="392" height="100" />
+        </a>
+
+        <!-- Город: только на десктопе (на телефоне занимает место) -->
+        <div class="hidden lg:flex items-center gap-1 text-sm text-ink-soft shrink-0" aria-label="Город">
+          <svg class="w-4 h-4 text-brand shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span data-city class="font-medium">Таганрог</span>
+        </div>
+      </div>
+
+      <!-- Справа: поиск + контакт-блок + избранное/сравнение -->
+      <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+        <button id="search-open" class="icon-btn" aria-label="Поиск">
+          <i data-lucide="search" data-cls="w-5 h-5"></i>
+        </button>
+
+        <button data-theme-toggle class="icon-btn" aria-label="Сменить тему" title="Светлая / тёмная тема">
+          <svg data-theme-sun class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg data-theme-moon class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <!-- Единый вертикальный контакт-блок -->
+        <div class="hidden lg:flex flex-col items-end leading-tight">
+          <a data-phone id="phone-longpress" href="#" class="text-[17px] font-bold text-ink hover:text-brand transition select-none" title="Нажмите, чтобы позвонить · удерживайте, чтобы скопировать"><span data-phone-text>+7</span></a>
+          <button data-open-callback class="text-[11px] font-semibold tracking-wider uppercase text-brand hover:text-ink transition">Заказать звонок</button>
+          <div class="flex items-center gap-1.5 mt-1.5">
+            <a data-vk href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#4a76a8" aria-label="ВКонтакте"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12.94 16.6c-5.2 0-8.4-3.6-8.5-9.5h2.7c.1 4.3 2 6.1 3.4 6.5V7.1h2.5v3.9c1.4-.2 2.9-1.8 3.4-3.9h2.5c-.4 2.5-2 4.1-3.1 4.8 1.1.5 3 1.9 3.7 4.7h-2.8c-.5-1.7-1.8-3-3.7-3.2v3.2z"/></svg></a>
+            <a data-tg href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#229ED9" aria-label="Telegram"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M21.9 4.3l-3.1 14.6c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1 1.4 11.6c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z"/></svg></a>
+            <a data-wa href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#25D366" aria-label="WhatsApp"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.8.7.7-2.7-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1-.9-.4-1.7-1-2.3-1.9-.2-.3.2-.3.5-.9.1-.1 0-.3 0-.4l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.7.7-.9 1.6-.6 2.6.5 1.6 1.6 2.9 3.2 3.7 1.9 1 2.4.8 2.9.8.5 0 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg></a>
+            <a data-max href="#" target="_blank" rel="noopener" class="soc-ic" style="background:#2D6CFF" aria-label="MAX" title="MAX"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.6 1.3 4.9 3.5 6.5L5 22l4-1.8c.95.25 1.95.4 3 .4 5.5 0 10-3.9 10-8.9S17.5 3 12 3z"/></svg></a>
+          </div>
+        </div>
+
+        <div class="w-px h-8 bg-black/10 hidden lg:block"></div>
+
+        <button id="fav-toggle" class="icon-btn" title="Избранное" aria-label="Избранное">
+          <i data-lucide="heart" data-cls="w-5 h-5"></i>
+          <span id="fav-count" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center text-[11px] rounded-full bg-apple-red text-white">0</span>
+        </button>
+        <button id="open-compare" class="icon-btn" title="Сравнить" aria-label="Сравнить">
+          <i data-lucide="git-compare" data-cls="w-5 h-5"></i>
+          <span id="cmp-count" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center text-[11px] rounded-full bg-brand text-white">0</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============ Оверлей поиска (разворачивается по клику на лупу) ============ -->
+  <div id="search-overlay" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" data-search-bg></div>
+    <div class="relative bg-white shadow-2xl">
+      <div class="mx-auto max-w-2xl px-4 py-3 flex items-center gap-2">
+        <i data-lucide="search" data-cls="w-5 h-5 text-ink-mute"></i>
+        <input id="search-input" type="search" placeholder="Поиск: айфон 16 256 титан…" autocomplete="off"
+          class="flex-1 bg-transparent outline-none text-base py-2" />
+        <button id="search-close" class="icon-btn" aria-label="Закрыть"><i data-lucide="x" data-cls="w-5 h-5"></i></button>
+      </div>
+      <div id="search-results" class="mx-auto max-w-2xl px-2 pb-4 max-h-[70vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <a id="top"></a>
+
+  <main class="mx-auto max-w-6xl px-4">
+
+    <!-- ============ ГЕРОЙ ============ -->
+    <section class="pt-10 sm:pt-16 pb-8 sm:pb-12">
+      <div class="max-w-3xl mx-auto text-center">
+        <span class="inline-flex items-center gap-1.5 text-brand font-medium text-xs sm:text-sm bg-brand/10 rounded-full px-3 py-1.5">
+          <i data-lucide="shield-check" data-cls="w-4 h-4"></i> Оригинал · Гарантия 1 год · Trade-In
+        </span>
+        <h1 class="mt-5 sm:mt-6 text-[2rem] leading-[1.08] sm:text-[3.4rem] sm:leading-[1.05] font-semibold tracking-tight text-balance">
+          Оригинальная техника Apple<br class="hidden sm:block" /> в Таганроге
+        </h1>
+        <p class="mt-4 sm:mt-5 text-base sm:text-lg text-ink-mute max-w-xl mx-auto text-balance">
+          iPhone, Mac, iPad, Apple Watch и AirPods — в наличии и под заказ за 1 день.
+          Оригинальная техника с гарантией магазина. Trade-In и рассрочка 0-0-12.
+        </p>
+        <div class="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="#catalog" class="btn-primary px-7 py-3 text-base">Смотреть каталог</a>
+          <button data-open-tradein class="btn-soft px-7 py-3 text-base">Оценить Trade-In</button>
+        </div>
+      </div>
+
+      <!-- Преимущества: единая аккуратная лента, иконка слева -->
+      <div class="mt-9 sm:mt-12 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl mx-auto">
+        <div class="flex items-center gap-3 rounded-2xl bg-cloud-card shadow-card p-3.5 sm:p-4">
+          <span class="grid place-items-center w-10 h-10 rounded-xl bg-brand/10 text-brand shrink-0"><i data-lucide="shield-check" data-cls="w-5 h-5"></i></span>
+          <div class="min-w-0"><div class="font-semibold leading-tight">100% оригинал</div><div class="text-xs text-ink-mute">официальные Apple</div></div>
+        </div>
+        <div class="flex items-center gap-3 rounded-2xl bg-cloud-card shadow-card p-3.5 sm:p-4">
+          <span class="grid place-items-center w-10 h-10 rounded-xl bg-brand/10 text-brand shrink-0"><i data-lucide="truck" data-cls="w-5 h-5"></i></span>
+          <div class="min-w-0"><div class="font-semibold leading-tight">Быстро</div><div class="text-xs text-ink-mute">под заказ за 1 день</div></div>
+        </div>
+        <div class="flex items-center gap-3 rounded-2xl bg-cloud-card shadow-card p-3.5 sm:p-4">
+          <span class="grid place-items-center w-10 h-10 rounded-xl bg-brand/10 text-brand shrink-0"><i data-lucide="repeat" data-cls="w-5 h-5"></i></span>
+          <div class="min-w-0"><div class="font-semibold leading-tight">Trade-In</div><div class="text-xs text-ink-mute">обмен старого на новое</div></div>
+        </div>
+        <div class="flex items-center gap-3 rounded-2xl bg-cloud-card shadow-card p-3.5 sm:p-4">
+          <span class="grid place-items-center w-10 h-10 rounded-xl bg-brand/10 text-brand shrink-0"><i data-lucide="credit-card" data-cls="w-5 h-5"></i></span>
+          <div class="min-w-0"><div class="font-semibold leading-tight">Рассрочка</div><div class="text-xs text-ink-mute">0-0-12 без переплат</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ КАТАЛОГ (иерархический) ============ -->
+    <section id="catalog" class="pt-6 pb-4 scroll-mt-24">
+      <div class="flex items-end justify-between gap-4 flex-wrap min-h-[2.25rem]">
+        <div id="breadcrumb"></div>
+        <span id="result-count" class="text-sm text-ink-mute"></span>
+      </div>
+
+      <!-- Контекстные фильтры (видны на уровнях 2–3) -->
+      <div id="filters" class="hidden mt-4 flex flex-wrap items-center gap-2"></div>
+    </section>
+
+    <!-- Сетка товаров (min-height резервирует место — меньше сдвига макета/CLS) -->
+    <section class="pb-16">
+      <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 min-h-[60vh] content-start"></div>
+      <div id="grid-empty" class="hidden py-20 text-center text-ink-mute">
+        Ничего не найдено. Попробуйте изменить фильтры.
+      </div>
+    </section>
+
+    <!-- ============ TRADE-IN блок ============ -->
+    <section class="mb-16 rounded-3xl glass p-7 sm:p-12 text-center">
+      <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight">Trade-In: обменяйте старое на новое</h2>
+      <p class="mt-3 text-ink-mute max-w-xl mx-auto">
+        Оцените ориентировочную стоимость вашего устройства онлайн. Точную сумму назовём после бесплатной диагностики в магазине.
+      </p>
+      <button data-open-tradein class="btn-primary px-6 py-3 mt-6">Рассчитать выкуп</button>
+    </section>
+
+    <!-- ============ КОНТАКТЫ ============ -->
+    <section id="contacts" class="mb-16 scroll-mt-28">
+      <div class="rounded-3xl bg-cloud-card p-7 sm:p-12 text-center shadow-card">
+        <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight">Есть вопрос? Мы на связи</h2>
+        <p class="mt-3 text-ink-mute">Ответим в мессенджере или по телефону в течение нескольких минут.</p>
+        <div class="mt-6 flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
+          <a data-tg href="#" target="_blank" class="btn-primary px-6 py-3">Telegram</a>
+          <a data-wa href="#" target="_blank" class="btn-soft px-6 py-3">WhatsApp</a>
+          <a data-phone href="#" class="btn-soft px-6 py-3">+7 000 000-00-00</a>
+          <button data-open-lead class="btn-soft px-6 py-3">Оставить заявку</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ОТЗЫВЫ («О нас пишут») ============ -->
+    <section id="reviews" class="mb-16 scroll-mt-24">
+      <div class="flex items-end justify-between gap-3 mb-5">
+        <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight">О нас пишут</h2>
+        <span class="text-sm text-ink-mute">Яндекс.Карты</span>
+      </div>
+      <div id="reviews-grid" class="grid gap-4 sm:gap-5 md:grid-cols-2"></div>
+    </section>
+
+    <!-- ============ ВОПРОСЫ И ОТВЕТЫ (SEO + AI) ============ -->
+    <section id="faq" class="mb-16 scroll-mt-24">
+      <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-5">Частые вопросы</h2>
+      <div id="faq-list" class="space-y-3 max-w-3xl"></div>
+    </section>
+
+    <!-- ============ КАРТА / КАК НАС НАЙТИ ============ -->
+    <section id="locations" class="mb-16 scroll-mt-24">
+      <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-5">Как нас найти</h2>
+      <div id="locations-wrap" class="rounded-3xl overflow-hidden bg-cloud-card shadow-card"></div>
+    </section>
+
+    <!-- ============ О МАГАЗИНЕ (текст для людей и поисковиков) ============ -->
+    <section id="about" class="mb-16 scroll-mt-24">
+      <div class="rounded-3xl bg-cloud-card shadow-card p-6 sm:p-10 max-w-3xl">
+        <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight">О магазине «Apple и точка» в Таганроге</h2>
+        <div class="mt-4 space-y-4 text-ink-soft leading-relaxed">
+          <p>«Apple и точка» — магазин оригинальной техники Apple в Таганроге. У нас можно купить
+          iPhone, компьютеры и ноутбуки Mac, планшеты iPad, часы Apple Watch и наушники AirPods,
+          а также смартфоны Samsung, игровые приставки PlayStation и аксессуары. Вся техника
+          оригинальная, с гарантией магазина.</p>
+          <p>Популярные модели держим в наличии, а редкие конфигурации привозим под заказ —
+          как правило, за один день. Цена каждой модели указана в карточке товара, а способ оплаты
+          вы выбираете сами — наличными, картой или в рассрочку.</p>
+          <p>Хотите обновить устройство — работает Trade-In: принимаем ваш старый смартфон, планшет
+          или часы в зачёт нового. Ориентировочную стоимость выкупа можно рассчитать онлайн, а точную
+          сумму назовём после бесплатной диагностики в магазине. Доступна рассрочка 0-0-12 — без
+          первоначального взноса и переплат.</p>
+          <p>Оформить заказ просто: выберите товар, нажмите «Оформить» и оставьте имя и телефон —
+          оператор перезвонит в течение нескольких минут. Можно связаться напрямую в Telegram,
+          WhatsApp или по телефону. Доставляем по Таганрогу, доступен самовывоз по адресу
+          площадь Мира, 7. «Apple и точка» — оригинальная техника Apple в Таганроге с понятными
+          ценами, Trade-In, рассрочкой и удобной доставкой. Не является официальным сайтом Apple Inc.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ ФУТЕР ============ -->
+  <footer class="hairline">
+    <div class="mx-auto max-w-6xl px-4 py-10 text-sm text-ink-mute">
+      <div class="flex flex-col sm:flex-row justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <img src="./assets/logo-mark.svg" class="w-6 h-6" alt="Логотип Apple и точка" width="24" height="24" />
+            <span class="font-semibold text-ink">pple <span class="text-brand">и точка</span></span>
+          </div>
+          <p class="mt-2 max-w-xs">Магазин техники Apple в городе <span data-city>ваш город</span>. Не является официальным сайтом Apple Inc.</p>
+        </div>
+        <nav class="flex flex-col gap-2">
+          <a data-privacy href="privacy.html" class="link-muted">Политика конфиденциальности</a>
+          <a data-offer href="offer.html" class="link-muted">Публичная оферта</a>
+          <a data-tg href="#" target="_blank" class="link-muted">Telegram</a>
+          <a data-phone href="#" class="link-muted">+7 000 000-00-00</a>
+        </nav>
+      </div>
+      <p class="mt-8 text-xs text-ink-mute/80">
+        © <span id="year"></span> Apple и точка. Сайт носит сугубо информационный характер и не является публичной офертой, определяемой Статьёй 437 (2) ГК РФ.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ============ Cookie-баннер (FR-5.2) ============ -->
+  <div id="cookie-banner" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[55] w-[calc(100%-2rem)] max-w-2xl glass rounded-2xl shadow-pop p-4 flex flex-wrap items-center gap-3 transition-all duration-300">
+    <p class="text-sm text-ink-soft flex-1 min-w-[180px]">
+      Мы используем файлы cookie для корректной работы сайта. Продолжая, вы соглашаетесь с
+      <a data-privacy href="privacy.html" class="text-brand hover:underline">Политикой конфиденциальности</a>.
+    </p>
+    <button id="cookie-accept" class="btn-primary text-sm px-5 py-2 w-full sm:w-auto">Принять</button>
+  </div>
+
+  <!-- ============ Speed dial: выбор способа связи ============ -->
+  <div id="speeddial" class="fixed right-4 bottom-4 z-[54] flex flex-col items-end gap-3">
+    <div id="sd-actions" class="flex flex-col items-end gap-2.5">
+      <a data-tg href="#" target="_blank" rel="noopener" class="sd-item">
+        Telegram
+        <span class="sd-ic" style="background:#229ED9">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M21.9 4.3l-3.1 14.6c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1 1.4 11.6c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z"/></svg>
+        </span>
+      </a>
+      <a data-wa href="#" target="_blank" rel="noopener" class="sd-item">
+        WhatsApp
+        <span class="sd-ic" style="background:#25D366">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.8.7.7-2.7-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1-.9-.4-1.7-1-2.3-1.9-.2-.3.2-.3.5-.9.1-.1 0-.3 0-.4l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.7.7-.9 1.6-.6 2.6.5 1.6 1.6 2.9 3.2 3.7 1.9 1 2.4.8 2.9.8.5 0 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>
+        </span>
+      </a>
+      <a data-vk href="#" target="_blank" rel="noopener" class="sd-item">
+        ВКонтакте
+        <span class="sd-ic" style="background:#4a76a8">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12.94 16.6c-5.2 0-8.4-3.6-8.5-9.5h2.7c.1 4.3 2 6.1 3.4 6.5V7.1h2.5v3.9c1.4-.2 2.9-1.8 3.4-3.9h2.5c-.4 2.5-2 4.1-3.1 4.8 1.1.5 3 1.9 3.7 4.7h-2.8c-.5-1.7-1.8-3-3.7-3.2v3.2z"/></svg>
+        </span>
+      </a>
+      <a data-max href="#" target="_blank" rel="noopener" class="sd-item">
+        MAX
+        <span class="sd-ic" style="background:#2D6CFF">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.6 1.3 4.9 3.5 6.5L5 22l4-1.8c.95.25 1.95.4 3 .4 5.5 0 10-3.9 10-8.9S17.5 3 12 3z"/></svg>
+        </span>
+      </a>
+      <a data-phone href="#" class="sd-item">
+        Позвонить
+        <span class="sd-ic" style="background:#0582F6">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.2c1.1.4 2.3.6 3.6.6a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.6 3.6a1 1 0 01-.2 1l-2.3 2.2z"/></svg>
+        </span>
+      </a>
+    </div>
+    <button id="sd-toggle" class="sd-fab" aria-label="Связаться" aria-expanded="false">
+      <svg class="sd-open w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 01-12.5 7.5L3 20l1.5-4.5A8.5 8.5 0 1121 11.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="sd-close w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Корень для модальных окон -->
+  <div id="modal-root"></div>
+
+  <!-- classic-скрипты в порядке зависимостей: работают и при открытии файла напрямую -->
+  <script src="./js/config.js"></script>
+  <script src="./js/icons.js"></script>
+  <script src="./data/products.js"></script>
+  <script src="./js/storage.js"></script>
+  <script src="./js/search.js"></script>
+  <!-- compare.js и trade-in.js грузятся лениво по требованию (см. ensureScript в app.js) -->
+  <script src="./js/app.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
