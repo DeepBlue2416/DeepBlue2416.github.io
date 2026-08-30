@@ -1,0 +1,330 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================================================
+   Apple i Точка — базовые стили в стиле Apple
+   =================================================================== */
+
+@layer base {
+  /* ===== Дизайн-токены цвета (светлая тема) — RGB-каналы для rgb(var/<alpha>) ===== */
+  :root {
+    --nav-h: 48px;
+    --bg-primary: 250 249 246;     /* фон страницы */
+    --bg-surface: 255 255 255;     /* карточки/поверхности */
+    --text-primary: 29 29 31;
+    --text-soft: 66 66 69;
+    --text-secondary: 110 110 115;
+    --brand-primary: 5 130 246;
+    --brand-primary-dark: 10 108 224;
+    --status-success: 0 161 92;
+    --status-warning: 201 138 0;
+    --status-error: 227 0 0;
+    --hairline: 0 0 0;             /* цвет тонких разделителей (через прозрачность) */
+    --glass-bg: 255 255 255;
+    --glass-alpha: 0.7;
+  }
+  /* ===== Тёмная тема ===== */
+  .dark {
+    --bg-primary: 17 17 19;
+    --bg-surface: 32 32 36;
+    --text-primary: 245 245 247;
+    --text-soft: 214 214 220;
+    --text-secondary: 156 156 166;
+    --brand-primary: 45 150 255;
+    --brand-primary-dark: 10 108 224;
+    --status-success: 48 209 128;
+    --status-warning: 240 185 60;
+    --status-error: 255 99 99;
+    --hairline: 255 255 255;
+    --glass-bg: 26 26 30;
+    --glass-alpha: 0.72;
+  }
+  html { background: rgb(var(--bg-primary)); }
+
+  /* ===== Тёмная тема: совместимость с «литеральными» утилитами в разметке =====
+     Отдельные элементы используют bg-white / border-black напрямую. В тёмной теме
+     подменяем их на токен-поверхности, чтобы не было «слепящих» белых пятен. */
+  .dark .bg-white { background-color: rgb(var(--bg-surface)) !important; }
+  .dark .bg-white\/80 { background-color: rgb(var(--bg-surface) / 0.80) !important; }
+  .dark .bg-white\/60 { background-color: rgb(var(--bg-surface) / 0.60) !important; }
+  .dark .hover\:bg-white:hover { background-color: rgb(var(--bg-surface)) !important; }
+  .dark .border-black\/10 { border-color: rgb(var(--hairline) / 0.14) !important; }
+  /* Тёмная тема: подложка фото — слегка приподнятый тёмный, товар с прозрачным фоном парит */
+  .dark .media-plate { background-color: rgb(255 255 255 / 0.05); }
+
+  /* Скраббер: вертикальный скролл страницы сохраняется на тач-устройствах */
+  .card-media { touch-action: pan-y; }
+
+  /* Skeleton-загрузчик */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--hairline) / 0.06);
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--bg-surface) / 0.6), transparent);
+    animation: ait-shimmer 1.3s infinite;
+  }
+  @keyframes ait-shimmer {
+    100% { transform: translateX(100%); }
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    /* Off-canvas панели (drawer, speed-dial) выезжают из-за правого края через translate-x.
+       `overflow-x: clip` на <html> убирает от них горизонтальный скролл, НЕ создавая
+       скролл-контейнер и НЕ ломая position: sticky — в отличие от `overflow:hidden` на body. */
+    overflow-x: clip;
+  }
+
+  body {
+    @apply font-sf bg-cloud text-ink antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Аккуратный тонкий скроллбар */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--hairline) / 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--hairline) / 0.30);
+    background-clip: content-box;
+  }
+
+  ::selection {
+    background: rgb(var(--brand-primary) / 0.22);
+  }
+}
+
+@layer components {
+  /* Стеклянная навигация / модалки */
+  .glass {
+    background: rgb(var(--glass-bg) / var(--glass-alpha));
+    @apply backdrop-blur-xl2;
+    border: 1px solid rgb(var(--hairline) / 0.10);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    backdrop-filter: saturate(180%) blur(28px);
+  }
+
+  .glass-dark {
+    background: rgba(22, 22, 23, 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    backdrop-filter: saturate(180%) blur(28px);
+  }
+
+  /* Кнопки в стиле Apple */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-medium
+           transition-all duration-300 ease-apple select-none;
+  }
+  .btn-primary {
+    @apply btn bg-apple-blue text-white px-5 py-2.5 hover:bg-apple-blueDark
+           active:scale-[0.97] shadow-sm;
+  }
+  .btn-ghost {
+    @apply btn text-apple-blue px-4 py-2 hover:bg-apple-blue/5 active:scale-[0.97];
+  }
+  .btn-soft {
+    @apply btn text-ink px-4 py-2 active:scale-[0.97];
+    background: rgb(var(--hairline) / 0.05);
+  }
+  .btn-soft:hover { background: rgb(var(--hairline) / 0.10); }
+  .btn-pill {
+    @apply btn text-ink-soft px-4 py-1.5 text-sm hover:text-ink;
+    background: rgb(var(--bg-surface) / 0.60);
+    border: 1px solid rgb(var(--hairline) / 0.10);
+  }
+  .btn-pill:hover { border-color: rgb(var(--hairline) / 0.25); }
+  .btn-pill.is-active {
+    /* Инверсия через токены — читается в обеих темах (в тёмной: светлая пилюля, тёмный текст) */
+    background: rgb(var(--text-primary));
+    color: rgb(var(--bg-primary));
+    border-color: rgb(var(--text-primary));
+  }
+
+  /* Подложка под фото товаров. Большинство снимков теперь с прозрачным фоном, поэтому
+     подложка адаптивна к теме: мягкий светлый в light, слегка приподнятый тёмный в dark —
+     товар «парит» на карточке в любой теме, без белых прямоугольников. */
+  .media-plate { background-color: #ffffff; }
+
+  /* Иконочные кнопки в шапке (избранное / сравнение) */
+  .icon-btn {
+    @apply relative grid place-items-center w-10 h-10 rounded-full text-ink-soft
+           hover:bg-black/5 active:scale-95 transition;
+  }
+  .icon-btn.is-active {
+    @apply text-brand bg-brand/10;
+  }
+
+  /* Плашки категорий (L1 каталога) */
+  .cat-tile {
+    @apply relative bg-cloud-card rounded-3xl p-3 shadow-card text-left
+           transition-all duration-300 ease-apple;
+  }
+  /* Ховер: подъём + брендовое кольцо + зум фото — на ВСЕХ уровнях каталога
+     (плитки категорий L1, серии L2 и карточки товаров L3 используют .cat-tile / .card) */
+  .cat-tile:hover,
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 2px rgb(var(--brand-primary) / 0.55), 0 12px 34px rgba(0, 0, 0, 0.12);
+  }
+  .cat-tile .cat-img,
+  .card .media-plate:not(.card-media) img,
+  .card .series-art img {
+    transition: transform 0.35s cubic-bezier(0.28, 0.11, 0.32, 1);
+  }
+  .cat-tile:hover .cat-img,
+  .card:hover .media-plate:not(.card-media) img,
+  .card:hover .series-art img {
+    transform: scale(1.06);
+  }
+  .cat-tile-art {
+    @apply grid place-items-center aspect-square rounded-2xl;
+    background-image: linear-gradient(140deg, var(--accent, #0582F6), rgba(0, 0, 0, 0.4));
+  }
+
+  /* Плашки серий (L2) — мягкая заливка цветом категории, чтобы было понятно,
+     что это всё ещё выбор категории/модели */
+  .series-art {
+    background-color: var(--accent, #0582F6);
+    background-image: linear-gradient(140deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.72));
+  }
+
+  /* Точки выбора цвета (Color Swatch Preview) */
+  .swatch {
+    @apply w-5 h-5 rounded-full ring-2 ring-transparent transition;
+    background: var(--sw, #ccc);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  }
+  .swatch:hover { transform: scale(1.12); }
+  .swatch.is-active { @apply ring-brand; }
+
+  /* Цветные круглые иконки соцсетей в шапке */
+  .soc-ic {
+    @apply grid place-items-center w-7 h-7 rounded-full text-white transition
+           hover:opacity-90 active:scale-95;
+  }
+
+  /* Speed dial — выбор способа связи */
+  .sd-fab {
+    @apply grid place-items-center w-14 h-14 rounded-full text-white shadow-pop
+           transition active:scale-95;
+    background-image: linear-gradient(135deg, #17c0f9, #0582f6);
+  }
+  .sd-item {
+    @apply inline-flex items-center gap-2.5 rounded-full bg-surface pl-4 pr-2 py-1.5
+           text-sm font-medium text-ink shadow-card hover:shadow-pop transition;
+  }
+  .sd-item .sd-ic {
+    @apply grid place-items-center w-8 h-8 rounded-full text-white shrink-0;
+  }
+  #sd-actions { @apply transition-all duration-300 ease-apple; }
+  #speeddial:not(.is-open) #sd-actions { @apply opacity-0 translate-y-3; }
+  #speeddial.is-open #sd-actions { @apply opacity-100 translate-y-0; }
+  #speeddial .sd-close { @apply hidden; }
+  #speeddial.is-open .sd-open { @apply hidden; }
+  #speeddial.is-open .sd-close { @apply block; }
+
+  /* Карточка товара */
+  .card {
+    @apply relative bg-cloud-card rounded-3xl p-5 shadow-card
+           transition-all duration-300 ease-apple;
+  }
+  /* .card:hover — единое правило подъёма+кольца задано выше вместе с .cat-tile:hover */
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .chip-green { @apply bg-apple-green/10 text-apple-green; }
+  .chip-amber { @apply bg-apple-amber/10 text-apple-amber; }
+
+  .field {
+    @apply w-full rounded-2xl bg-surface px-4 py-3 text-ink
+           outline-none transition focus:border-apple-blue focus:ring-4 focus:ring-apple-blue/10;
+    border: 1px solid rgb(var(--hairline) / 0.10);
+  }
+
+  .link-muted {
+    @apply text-ink-mute hover:text-ink transition-colors;
+  }
+
+  /* Тонкая линия-разделитель как в Apple */
+  .hairline { border-top: 1px solid rgb(var(--hairline) / 0.08); }
+
+  /* ---- Админ-панель (CRM) ---- */
+  .adm-tab {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium
+           text-ink-mute hover:text-ink hover:bg-black/[0.04] transition cursor-pointer select-none;
+  }
+  .adm-tab.is-active {
+    background: rgb(var(--text-primary));
+    color: rgb(var(--bg-primary));
+  }
+  .adm-tab.is-active:hover { color: rgb(var(--bg-primary)); }
+
+  .adm-icbtn {
+    @apply inline-grid place-items-center w-10 h-10 rounded-full text-ink-soft
+           hover:bg-black/5 active:scale-95 transition disabled:opacity-30 disabled:pointer-events-none;
+  }
+
+  .adm-row {
+    @apply flex items-center gap-3 rounded-2xl bg-cloud-card border border-black/[0.06]
+           px-3 py-2.5 shadow-sm transition hover:border-black/15;
+  }
+  .adm-row.is-dirty { @apply border-apple-amber/50 bg-apple-amber/[0.04]; }
+
+  .adm-input {
+    @apply w-full rounded-xl bg-surface px-3 py-2 text-sm text-ink
+           outline-none transition focus:border-apple-blue focus:ring-2 focus:ring-apple-blue/15;
+    border: 1px solid rgb(var(--hairline) / 0.10);
+  }
+  .adm-label { @apply block text-xs font-medium text-ink-mute mb-1; }
+
+  /* Боковая панель редактора */
+  .drawer-scrim {
+    @apply fixed inset-0 bg-black/30 opacity-0 pointer-events-none transition-opacity duration-300 z-40;
+    will-change: opacity;
+  }
+  .drawer-scrim.is-open { @apply opacity-100 pointer-events-auto; }
+  .drawer-panel {
+    @apply fixed top-0 right-0 h-full w-full max-w-md bg-cloud shadow-pop z-50
+           translate-x-full transition-transform duration-300 ease-apple flex flex-col;
+    /* GPU-изоляция: анимируем только transform, панель — отдельный слой, без reflow соседей */
+    will-change: transform;
+    backface-visibility: hidden;
+    contain: layout paint style;
+  }
+  .drawer-panel.is-open { @apply translate-x-0; }
+
+  .adm-thumb {
+    @apply relative w-16 h-16 rounded-xl overflow-hidden bg-surface shrink-0
+           grid place-items-center;
+    border: 1px solid rgb(var(--hairline) / 0.10);
+  }
+}
+
+@layer utilities {
+  /* Резервируем размер под lucide-иконки до их замены на SVG (меньше сдвига/CLS) */
+  i[data-lucide] { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -0.15em; }
+  .text-balance { text-wrap: balance; }
+  /* Логотип: тёмная часть подписи следует за токеном текста (важно для тёмной темы) */
+  .logo-ink { fill: rgb(var(--text-primary)); }
+  /* Тёмная тема временно отключена: прячем переключатель (код темы сохранён на будущее) */
+  [data-theme-toggle] { display: none !important; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
