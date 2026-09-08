@@ -516,6 +516,8 @@
             </div>
             <span class="chip ${anyStock ? "chip-green" : "chip-amber"} shrink-0">${anyStock ? "В наличии" : "Под заказ"}</span>
             <button class="adm-icbtn shrink-0" data-gadd="${esc(g.key)}" title="Добавить вариант">${svg("plus")}</button>
+            <button class="adm-icbtn shrink-0" data-grename="${esc(g.key)}" title="Переименовать модель">${svg("edit")}</button>
+            <button class="adm-icbtn text-apple-red shrink-0" data-gdelete="${esc(g.key)}" title="Удалить модель целиком">${svg("trash")}</button>
           </div>`;
 
         const rows = !open ? "" : `<div class="border-t border-black/[0.06] divide-y divide-black/[0.04]">${g.list
@@ -542,7 +544,7 @@
     // Раскрытие/сворачивание групп
     $$("[data-ghead]", list).forEach((h) => {
       h.onclick = (e) => {
-        if (e.target.closest("[data-gadd]")) return;
+        if (e.target.closest("[data-gadd],[data-grename],[data-gdelete]")) return;
         const k = h.dataset.ghead;
         if (state.openGroups.has(k)) state.openGroups.delete(k);
         else state.openGroups.add(k);
@@ -551,6 +553,12 @@
     });
     $$("[data-gadd]", list).forEach((b) => {
       b.onclick = (e) => { e.stopPropagation(); addVariant(b.dataset.gadd); };
+    });
+    $$("[data-grename]", list).forEach((b) => {
+      b.onclick = (e) => { e.stopPropagation(); renameModelGroup(b.dataset.grename); };
+    });
+    $$("[data-gdelete]", list).forEach((b) => {
+      b.onclick = (e) => { e.stopPropagation(); deleteModelGroup(b.dataset.gdelete); };
     });
 
     // Варианты: инлайн-правки + действия
@@ -630,6 +638,59 @@
     renderProducts();
     fillCatFilter();
     toast("Товар удалён · Ctrl+Z вернёт");
+  }
+
+  // Переименование модели целиком (все варианты памяти/цвета сразу),
+  // например «iPhone 15 Pro» → «iPhone 15 Pro Max». Ключ группы (category||name)
+  // после переименования меняется, поэтому переносим обложку и состояние
+  // «раскрыто» на новый ключ, иначе они молча потеряются.
+  function renameModelGroup(key) {
+    const g = groupProducts(state.catalog.products).find((x) => x.key === key);
+    if (!g) return;
+    const newName = prompt(`Новое название модели «${g.name}» (${g.list.length} ${plural(g.list.length)}):`, g.name);
+    if (newName == null) return; // отмена
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === g.name) return;
+
+    pushUndo();
+    state.catalog.products.forEach((p) => {
+      if (p.category === g.category && p.name === g.name) p.name = trimmed;
+    });
+
+    const newKey = g.category + "||" + trimmed;
+    const covers = state.catalog.meta && state.catalog.meta.covers;
+    if (covers && key in covers) {
+      covers[newKey] = covers[key];
+      delete covers[key];
+    }
+    if (state.openGroups.has(key)) {
+      state.openGroups.delete(key);
+      state.openGroups.add(newKey);
+    }
+
+    renderProducts();
+    fillCatFilter();
+    toast(`Модель переименована в «${trimmed}» · Ctrl+Z вернёт`);
+  }
+
+  // Полное удаление модели: все варианты памяти/цвета/SIM одной операцией.
+  function deleteModelGroup(key) {
+    const g = groupProducts(state.catalog.products).find((x) => x.key === key);
+    if (!g) return;
+    const count = g.list.length;
+    if (!confirm(`Удалить модель «${g.name}» полностью со всеми вариантами (${count} ${plural(count)})?\nЭто действие можно отменить через «Отменить» (Ctrl+Z).`)) return;
+
+    pushUndo();
+    state.catalog.products = state.catalog.products.filter(
+      (p) => !(p.category === g.category && p.name === g.name)
+    );
+    const covers = state.catalog.meta && state.catalog.meta.covers;
+    if (covers) delete covers[key];
+    state.openGroups.delete(key);
+
+    renderProducts();
+    fillCatFilter();
+    toast(`Модель «${g.name}» удалена (${count} ${plural(count)}) · Ctrl+Z вернёт`);
   }
 
   // ---------- Редактор товара (боковая панель) ----------
@@ -1113,31 +1174,6 @@
     $("#login").classList.remove("hidden");
     $("#token").value = "";
   }
-  // Переименование модели (например, Galaxy S24 Ultra -> Galaxy S26 Ultra)
-window.renameModel = function(modelId) {
-  const model = state.products.find(m => m.id === modelId);
-  if (!model) return;
-
-  const newTitle = prompt("Введите новое название для модели:", model.title);
-  if (newTitle !== null && newTitle.trim() !== "") {
-    model.title = newTitle.trim();
-    renderList();
-    if (typeof pushHistory === "function") pushHistory();
-  }
-};
-
-// Полное удаление модели со всеми ее вариантами
-window.deleteModel = function(modelId) {
-  const model = state.products.find(m => m.id === modelId);
-  if (!model) return;
-
-  if (confirm(`Вы уверены, что хотите полностью удалить модель "${model.title}" и все её варианты?`)) {
-    state.products = state.products.filter(m => m.id !== modelId);
-    renderList();
-    if (typeof pushHistory === "function") pushHistory();
-  }
-};
-
   // ---------- Инициализация ----------
   function init() {
     $$("[data-brand]").forEach((el) => (el.textContent = CONFIG.brand));
