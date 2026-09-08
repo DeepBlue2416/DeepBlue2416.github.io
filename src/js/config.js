@@ -19,10 +19,10 @@ var CONFIG = {
 
   // Контакты оператора (FR-4.1)
   contacts: {
-    phone: "+7 900 172-36-35",
-    phoneHref: "+79001723635",
-    telegram: "https://t.me/your_operator",
-    whatsapp: "https://wa.me/79001723635",
+    phone: "+7 989 536-06-84",
+    phoneHref: "+79895360684",
+    telegram: "https://t.me/@aleksandr_tgn",
+    whatsapp: "https://wa.me/79895360684",
     vk: "https://vk.ru/appleitochka_tgn",
     max: "https://max.ru/your_account", // мессенджер MAX
   },
