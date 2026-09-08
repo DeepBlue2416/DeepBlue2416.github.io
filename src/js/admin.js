@@ -1168,7 +1168,7 @@
 
     // Горячие клавиши
     document.addEventListener("keydown", (e) => {
-      const k = e.key.toLowerCase();
+      const k = e.key ? e.key.toLowerCase() : "";
       if ((e.metaKey || e.ctrlKey) && k === "s") { e.preventDefault(); save(); }
       else if ((e.metaKey || e.ctrlKey) && !e.shiftKey && k === "z") { e.preventDefault(); doUndo(); }
       else if ((e.metaKey || e.ctrlKey) && (k === "y" || (e.shiftKey && k === "z"))) { e.preventDefault(); doRedo(); }
