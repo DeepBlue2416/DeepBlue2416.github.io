@@ -1113,6 +1113,30 @@
     $("#login").classList.remove("hidden");
     $("#token").value = "";
   }
+  // Переименование модели (например, Galaxy S24 Ultra -> Galaxy S26 Ultra)
+window.renameModel = function(modelId) {
+  const model = state.products.find(m => m.id === modelId);
+  if (!model) return;
+
+  const newTitle = prompt("Введите новое название для модели:", model.title);
+  if (newTitle !== null && newTitle.trim() !== "") {
+    model.title = newTitle.trim();
+    renderList();
+    if (typeof pushHistory === "function") pushHistory();
+  }
+};
+
+// Полное удаление модели со всеми ее вариантами
+window.deleteModel = function(modelId) {
+  const model = state.products.find(m => m.id === modelId);
+  if (!model) return;
+
+  if (confirm(`Вы уверены, что хотите полностью удалить модель "${model.title}" и все её варианты?`)) {
+    state.products = state.products.filter(m => m.id !== modelId);
+    renderList();
+    if (typeof pushHistory === "function") pushHistory();
+  }
+};
 
   // ---------- Инициализация ----------
   function init() {
