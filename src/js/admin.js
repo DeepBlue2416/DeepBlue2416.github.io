@@ -192,6 +192,18 @@
       toast("Демо-режим: каталог скачан файлом (products.js).");
       return;
     }
+    if (!state.api) {
+      exportCatalog();
+      toast("Демо-режим: каталог скачан файлом (products.js).");
+      return;
+    }
+
+    // --- ВСТАВЛЯЕМ СЮДА ---
+    if (state.catalog && state.catalog.products) {
+      state.catalog.products.forEach(p => { if (p.name) p.series = p.name; });
+    }
+    // -----------------------
+
     const btn = $("#btn-save");
     // LOADING: кнопка показывает прогресс и блокируется
     btn.disabled = true;
