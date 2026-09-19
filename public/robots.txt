@@ -1,0 +1,81 @@
+# robots.txt — appleitochka.ru
+#
+# Логика: обучающие краулеры закрыты, поисковые и «по запросу пользователя» —
+# открыты. Это разные агенты, и путать их дорого: заблокировав GPTBot, вы не
+# отдаёте контент на обучение модели, но остаётесь в выдаче ChatGPT Search
+# только если открыт OAI-SearchBot. Одна строка не в ту сторону убирает
+# магазин из канала, который растёт быстрее обычного поиска.
+
+# ── Поисковые системы ──
+User-agent: Yandex
+Allow: /
+Disallow: /admin.html
+Disallow: /prices.html
+Disallow: /*token=
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin.html
+Disallow: /prices.html
+Disallow: /*token=
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /prices.html
+Disallow: /*token=
+
+# ── AI-поиск и запросы пользователей: ОТКРЫТО ──
+# Эти агенты приводят людей и ставят ссылку на магазин в ответе ассистента.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+# ── Обучение моделей: ЗАКРЫТО ──
+# Цены и описания не уходят в обучающие датасеты. На видимость в поиске и в
+# AI-ответах этот блок не влияет — там работают агенты из списка выше.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+Sitemap: https://appleitochka.ru/sitemap.xml
