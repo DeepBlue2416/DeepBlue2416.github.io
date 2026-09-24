@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Цены из прайса · Apple и точка</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./assets/css/tailwind.css" />
+  <script>(function(){try{document.documentElement.classList.remove("dark")}catch(e){}})();</script>
+</head>
+<body class="min-h-screen bg-cloud text-ink font-sf">
+
+<!-- ============ ВХОД ============ -->
+<section id="login" class="min-h-screen grid place-items-center px-4">
+  <div class="glass w-full max-w-sm rounded-3xl shadow-pop p-8">
+    <h1 class="text-xl font-semibold tracking-tight">Цены из прайса</h1>
+    <p class="text-ink-mute text-xs mt-1">Проверка и применение цен из Telegram-канала</p>
+    <form id="login-form" class="mt-6 space-y-4">
+      <label class="block">
+        <span class="adm-label">URL воркера</span>
+        <input id="api" type="url" class="field mt-1" placeholder="https://xxx.workers.dev" required />
+      </label>
+      <label class="block">
+        <span class="adm-label">Токен доступа (ADMIN_TOKEN)</span>
+        <input id="token" type="password" class="field mt-1" required />
+      </label>
+      <button class="btn btn-primary w-full">Войти</button>
+      <p id="login-err" class="text-red-600 text-sm hidden"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ============ ОСНОВНОЙ ЭКРАН ============ -->
+<main id="app" class="hidden max-w-[1400px] mx-auto px-4 py-6">
+
+  <header class="flex flex-wrap items-center gap-3 justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight">Цены из прайса</h1>
+      <p id="meta" class="text-ink-mute text-sm mt-1">—</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button id="btn-paste-open" class="btn btn-primary">Вставить прайс</button>
+      <button id="btn-sync" class="btn btn-ghost">Синхронизация из канала</button>
+      <button id="btn-reload" class="btn btn-ghost">Обновить</button>
+      <a href="./admin.html" class="btn btn-ghost">В CRM</a>
+      <a href="./index.html" target="_blank" rel="noopener" class="btn btn-ghost">Сайт ↗</a>
+    </div>
+  </header>
+
+  <!-- Статус cron -->
+  <div id="status" class="mt-4 rounded-2xl p-4 text-sm"></div>
+
+  <!-- Вставка прайса вручную -->
+  <details id="paste-box" class="mt-4 rounded-2xl border border-hairline/20 bg-white p-4">
+    <summary class="cursor-pointer font-medium">Вставить прайс текстом</summary>
+    <p class="text-ink-mute text-sm mt-2">
+      Нужно, если канал поставщика закрытый: у приватных каналов нет
+      веб-страницы, и читать их автоматически нельзя. Откройте канал в Telegram,
+      выделите сообщения с прайсом, скопируйте и вставьте сюда — разбор,
+      сопоставление и проверки те же, что при автоматической синхронизации.
+    </p>
+    <textarea id="paste-text" rows="10" class="field mt-3 font-mono text-xs"
+      placeholder="APPLE (iPhone 17 Pro)&#10;&#10;iPhone 17 Pro 256GB Silver 🇯🇵 — 97 300&#10;iPhone 17 Pro 256GB Blue 🇯🇵 — 94 600"></textarea>
+    <div class="mt-3 flex items-center gap-3">
+      <button id="btn-paste" class="btn btn-primary">Разобрать</button>
+      <span id="paste-msg" class="text-sm text-ink-mute"></span>
+    </div>
+  </details>
+
+  <!-- Сводка -->
+  <div id="stats" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3"></div>
+
+  <!-- Панель действий -->
+  <div class="mt-5 flex flex-wrap items-center gap-3">
+    <label class="flex items-center gap-2 text-sm">
+      <input id="chk-all" type="checkbox" class="w-4 h-4 accent-brand" />
+      <span>Выбрать все применимые</span>
+    </label>
+    <span id="sel-count" class="text-ink-mute text-sm">выбрано: 0</span>
+    <div class="flex-1"></div>
+    <button id="btn-apply" class="btn btn-primary" disabled>Применить выбранные</button>
+  </div>
+
+  <!-- Таблица предложений -->
+  <div class="mt-4 overflow-x-auto rounded-2xl border border-hairline/20 bg-white">
+    <table class="w-full text-sm">
+      <thead class="bg-cloud text-ink-mute">
+        <tr>
+          <th class="p-3 w-10"></th>
+          <th class="p-3 text-left">Товар</th>
+          <th class="p-3 text-left">SIM</th>
+          <th class="p-3 text-right">Было</th>
+          <th class="p-3 text-right">Из прайса</th>
+          <th class="p-3 text-right w-36">Применить цену</th>
+          <th class="p-3 text-right">Δ</th>
+          <th class="p-3 text-left">Примечание</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <!-- Не сопоставленное -->
+  <details class="mt-6 rounded-2xl border border-hairline/20 bg-white p-4">
+    <summary class="cursor-pointer font-medium">Не сопоставлено с каталогом <span id="unm-count" class="text-ink-mute"></span></summary>
+    <div id="unmatched" class="mt-3 text-sm space-y-2"></div>
+  </details>
+
+  <!-- Ссылки на фиды -->
+  <section class="mt-6 rounded-2xl border border-hairline/20 bg-white p-4">
+    <h2 class="font-medium">Ссылки для площадок</h2>
+    <p class="text-ink-mute text-sm mt-1">
+      Фиды генерируются из того же хранилища, что и витрина, поэтому цены в них
+      меняются сразу после применения — пересборка сайта не нужна.
+    </p>
+    <div id="feeds" class="mt-3 grid sm:grid-cols-2 gap-2 text-sm"></div>
+  </section>
+
+  <p id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-ink text-white text-sm hidden"></p>
+</main>
+
+<script>
+(function () {
+  var S = { api: "", token: "", data: null, sel: new Set(), edits: {} };
+
+  var $ = function (s) { return document.querySelector(s); };
+  var fmt = function (n) { return Number(n).toLocaleString("ru-RU") + " ₽"; };
+
+  function toast(t) {
+    var el = $("#toast");
+    el.textContent = t; el.classList.remove("hidden");
+    setTimeout(function () { el.classList.add("hidden"); }, 2600);
+  }
+
+  function api(path, opts) {
+    opts = opts || {};
+    return fetch(S.api + path, {
+      method: opts.method || "GET",
+      headers: Object.assign({ Authorization: "Bearer " + S.token }, opts.body ? { "Content-Type": "application/json" } : {}),
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      cache: "no-store",
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+        return j;
+      });
+    });
+  }
+
+  // ---------- вход ----------
+  try {
+    S.api = localStorage.getItem("prices.api") || "";
+    S.token = localStorage.getItem("prices.token") || "";
+    if (S.api) $("#api").value = S.api;
+  } catch (e) {}
+
+  $("#login-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    S.api = $("#api").value.trim().replace(/\/$/, "");
+    S.token = $("#token").value;
+    $("#login-err").classList.add("hidden");
+    api("/api/tg-proposals").then(function () {
+      try {
+        localStorage.setItem("prices.api", S.api);
+        localStorage.setItem("prices.token", S.token);
+      } catch (e) {}
+      $("#login").classList.add("hidden");
+      $("#app").classList.remove("hidden");
+      load();
+    }).catch(function (err) {
+      var el = $("#login-err");
+      el.textContent = err.message === "unauthorized" ? "Неверный токен" : ("Ошибка: " + err.message);
+      el.classList.remove("hidden");
+    });
+  });
+
+  if (S.api && S.token) {
+    api("/api/tg-proposals").then(function () {
+      $("#login").classList.add("hidden"); $("#app").classList.remove("hidden"); load();
+    }).catch(function () {});
+  }
+
+  // ---------- загрузка ----------
+  function load() {
+    S.sel.clear(); S.edits = {};
+    Promise.all([
+      api("/api/tg-proposals"),
+      fetch(S.api + "/api/tg-sync-status", { cache: "no-store" }).then(function (r) { return r.json(); }).catch(function () { return null; }),
+    ]).then(function (res) {
+      S.data = res[0];
+      render(res[0], res[1]);
+    }).catch(function (e) { toast("Ошибка: " + e.message); });
+  }
+
+  $("#btn-reload").addEventListener("click", load);
+
+  $("#btn-paste-open").addEventListener("click", function () {
+    var b = document.getElementById("paste-box");
+    b.open = true;
+    b.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById("paste-text").focus();
+  });
+
+  $("#btn-paste").addEventListener("click", function () {
+    var txt = $("#paste-text").value;
+    if (txt.trim().length < 20) { $("#paste-msg").textContent = "Слишком мало текста"; return; }
+    var b = $("#btn-paste"); b.disabled = true; b.textContent = "Разбираю…";
+    $("#paste-msg").textContent = "";
+    api("/api/admin/tg-paste", { method: "POST", body: { text: txt } })
+      .then(function (r) {
+        $("#paste-msg").textContent = "Разобрано строк: " + r.parsed +
+          ", сопоставлено: " + r.matchedLines + ", предложений: " + r.proposals;
+        document.getElementById("paste-box").open = false;
+        load();
+      })
+      .catch(function (e) {
+        $("#paste-msg").textContent = e.message === "nothing_parsed"
+          ? "Ни одной строки с ценой не распознано — проверьте, что скопировался текст, а не скриншот"
+          : "Ошибка: " + e.message;
+      })
+      .then(function () { b.disabled = false; b.textContent = "Разобрать"; });
+  });
+
+  $("#btn-sync").addEventListener("click", function () {
+    var b = $("#btn-sync"); b.disabled = true; b.textContent = "Синхронизирую…";
+    api("/api/admin/sync-tg", { method: "POST" }).then(function (r) {
+      toast(r.success ? "Готово" : ("Не удалось: " + (r.error || "")));
+      load();
+    }).catch(function (e) { toast("Ошибка: " + e.message); })
+      .then(function () { b.disabled = false; b.textContent = "Запустить синхронизацию"; });
+  });
+
+  // ---------- отрисовка ----------
+  function render(data, status) {
+    var props = data.proposals || [], unm = data.unmatched || [], st = data.stats || {};
+
+    $("#meta").textContent = data.builtAt
+      ? "Прайс собран: " + new Date(data.builtAt).toLocaleString("ru-RU") + (data.channel ? " · @" + data.channel : "")
+      : "Прайс ещё не собирался";
+
+    // статус cron
+    var sEl = $("#status");
+    if (!status) {
+      sEl.className = "mt-4 rounded-2xl p-4 text-sm bg-cloud text-ink-mute";
+      sEl.textContent = "Статус синхронизации недоступен.";
+    } else if (status.channelEnabled === false) {
+      sEl.className = "mt-4 rounded-2xl p-4 text-sm bg-cloud text-ink-mute";
+      sEl.textContent = "Синхронизация с канала выключена — прайс принимается форвардами в бота.";
+    } else if (status.ok) {
+      sEl.className = "mt-4 rounded-2xl p-4 text-sm bg-green-50 text-green-900";
+      sEl.textContent = "Последняя синхронизация прошла успешно: " +
+        new Date(status.finishedAt || status.startedAt).toLocaleString("ru-RU") +
+        (status.cron ? " (cron " + status.cron + ")" : "");
+    } else {
+      sEl.className = "mt-4 rounded-2xl p-4 text-sm bg-red-50 text-red-900";
+      sEl.textContent = "Последняя синхронизация не удалась: " + (status.error || "неизвестно");
+    }
+
+    // сводка
+    var cards = [
+      ["Разобрано", st.parsed], ["Сопоставлено", st.matchedLines],
+      ["Применимо", st.applicable], ["На проверку", st.blocked], ["Не сопоставлено", st.unmatched],
+    ];
+    $("#stats").innerHTML = cards.map(function (c) {
+      return '<div class="rounded-xl bg-white border border-hairline/20 p-3">' +
+        '<div class="text-ink-mute text-xs">' + c[0] + "</div>" +
+        '<div class="text-xl font-semibold">' + (c[1] == null ? "—" : c[1]) + "</div></div>";
+    }).join("");
+
+    // строки
+    $("#rows").innerHTML = props.length ? props.map(function (p) {
+      var blocked = !!p.blocked;
+      return '<tr class="border-t border-hairline/10 ' + (blocked ? "bg-amber-50/60" : "") + '" data-id="' + p.id + '">' +
+        '<td class="p-3 align-top"><input type="checkbox" class="row-chk w-4 h-4 accent-brand" data-id="' + p.id + '" /></td>' +
+        '<td class="p-3 align-top"><div class="font-medium">' + esc(p.label) + "</div>" +
+          (p.sourceLine ? '<div class="text-ink-mute text-xs mt-0.5">' + esc(p.sourceLine) + "</div>" : "") +
+          (p.duplicates > 1 ? '<div class="text-amber-700 text-xs mt-0.5">строк прайса на эту позицию: ' + p.duplicates + " — взята меньшая закупка</div>" : "") +
+        "</td>" +
+        '<td class="p-3 align-top text-ink-soft">' + esc(p.sim || "") + "</td>" +
+        '<td class="p-3 align-top text-right text-ink-mute">' + (p.oldPrice ? fmt(p.oldPrice) : "—") + "</td>" +
+        '<td class="p-3 align-top text-right">' + fmt(p.retail) + "</td>" +
+        '<td class="p-3 align-top text-right"><input type="number" step="10" class="field text-right price-inp" data-id="' + p.id + '" value="' + p.retail + '" /></td>' +
+        '<td class="p-3 align-top text-right ' + (p.deltaPct > 0 ? "text-red-600" : p.deltaPct < 0 ? "text-green-700" : "text-ink-mute") + '">' +
+          (p.deltaPct == null ? "новая" : (p.deltaPct > 0 ? "+" : "") + p.deltaPct + "%") + "</td>" +
+        '<td class="p-3 align-top text-xs ' + (blocked ? "text-amber-800" : "text-ink-mute") + '">' +
+          (blocked ? "⚠ " + esc(p.blocked) + '<div class="mt-1">Можно применить, исправив цену вручную.</div>' : "") + "</td>" +
+        "</tr>";
+    }).join("") : '<tr><td colspan="8" class="p-6 text-center text-ink-mute">Предложений нет. Запустите синхронизацию.</td></tr>';
+
+    // не сопоставлено — группируем по причине, иначе это стена однотипных строк
+    $("#unm-count").textContent = "(" + unm.length + ")";
+    var byKind = {};
+    unm.forEach(function (u) {
+      var k = String(u.reason).replace(/«[^»]*»/g, "«…»").replace(/\(есть:[^)]*\)/, "").trim();
+      (byKind[k] = byKind[k] || []).push(u);
+    });
+    $("#unmatched").innerHTML = Object.keys(byKind).sort(function (a, b) {
+      return byKind[b].length - byKind[a].length;
+    }).map(function (k) {
+      return '<div><div class="font-medium">' + esc(k) + " — " + byKind[k].length + " шт.</div>" +
+        '<ul class="mt-1 text-ink-mute text-xs space-y-0.5">' +
+        byKind[k].slice(0, 8).map(function (u) {
+          return "<li>" + esc(u.offer && (u.offer.sourceLine || [u.offer.model, u.offer.storage, u.offer.color].filter(Boolean).join(" "))) + "</li>";
+        }).join("") + "</ul></div>";
+    }).join("") || '<p class="text-ink-mute">Всё сопоставилось.</p>';
+
+    // фиды
+    $("#feeds").innerHTML = [
+      ["ВКонтакте (YML)", "/feed/vk.yml", "Магазин → Товары → Импортировать из файла → по ссылке"],
+      ["2ГИС (YML)", "/feed/2gis.yml", "Личный кабинет → Товары и услуги → указать URL"],
+      ["2ГИС (CSV)", "/feed/2gis.csv", "если удобнее загрузить файлом вручную"],
+      ["Яндекс.Карты (YML)", "/feed/yandex-maps.yml", "Яндекс Бизнес → товары"],
+    ].map(function (f) {
+      var u = S.api + f[1];
+      return '<div class="rounded-xl bg-cloud p-3">' +
+        '<div class="font-medium">' + f[0] + "</div>" +
+        '<a class="text-brand break-all text-xs" href="' + u + '" target="_blank" rel="noopener">' + u + "</a>" +
+        '<div class="text-ink-mute text-xs mt-1">' + f[2] + "</div></div>";
+    }).join("");
+
+    bindRows();
+    updateSel();
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function bindRows() {
+    document.querySelectorAll(".row-chk").forEach(function (c) {
+      c.addEventListener("change", function () {
+        if (c.checked) S.sel.add(c.dataset.id); else S.sel.delete(c.dataset.id);
+        updateSel();
+      });
+    });
+    document.querySelectorAll(".price-inp").forEach(function (i) {
+      i.addEventListener("input", function () {
+        var p = (S.data.proposals || []).find(function (x) { return x.id === i.dataset.id; });
+        var v = Math.round(Number(i.value));
+        // Правку запоминаем только если она отличается от предложенной.
+        if (p && v !== p.retail) S.edits[i.dataset.id] = v; else delete S.edits[i.dataset.id];
+        // Изменил цену — почти наверняка хочет применить именно её.
+        var chk = document.querySelector('.row-chk[data-id="' + i.dataset.id + '"]');
+        if (chk && !chk.checked && S.edits[i.dataset.id]) { chk.checked = true; S.sel.add(i.dataset.id); }
+        updateSel();
+      });
+    });
+  }
+
+  $("#chk-all").addEventListener("change", function (e) {
+    var on = e.target.checked;
+    (S.data.proposals || []).forEach(function (p) {
+      if (p.blocked) return; // заблокированные не выбираем массово — их надо смотреть глазами
+      var c = document.querySelector('.row-chk[data-id="' + p.id + '"]');
+      if (c) { c.checked = on; }
+      if (on) S.sel.add(p.id); else S.sel.delete(p.id);
+    });
+    updateSel();
+  });
+
+  function updateSel() {
+    var n = S.sel.size, e = Object.keys(S.edits).length;
+    $("#sel-count").textContent = "выбрано: " + n + (e ? " · вручную исправлено: " + e : "");
+    $("#btn-apply").disabled = n === 0;
+  }
+
+  $("#btn-apply").addEventListener("click", function () {
+    var ids = Array.from(S.sel);
+    if (!ids.length) return;
+    var edited = ids.filter(function (id) { return S.edits[id] != null; }).length;
+    var msg = "Применить " + ids.length + " цен?" + (edited ? "\nИз них исправлено вручную: " + edited + "." : "") +
+      "\n\nПеред записью делается резервная копия — откат доступен в CRM (История).";
+    if (!confirm(msg)) return;
+
+    var prices = {};
+    ids.forEach(function (id) { if (S.edits[id] != null) prices[id] = S.edits[id]; });
+
+    var b = $("#btn-apply"); b.disabled = true; b.textContent = "Применяю…";
+    api("/api/admin/tg-apply", { method: "POST", body: { ids: ids, prices: prices } })
+      .then(function (r) {
+        var t = "Применено: " + r.applied;
+        if (r.rejected && r.rejected.length) t += ", отклонено: " + r.rejected.length;
+        toast(t);
+        load();
+      })
+      .catch(function (e) { toast("Ошибка: " + e.message); })
+      .then(function () { b.disabled = false; b.textContent = "Применить выбранные"; });
+  });
+})();
+</script>
+</body>
+</html>
