@@ -1,0 +1,106 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [test2]
+  workflow_dispatch:
+  # Пересборка по сигналу от воркера после правки каталога в CRM
+  # (worker шлёт repository_dispatch event_type=catalog-updated).
+  repository_dispatch:
+    types: [catalog-updated]
+  # Ночная пересборка — страховка: пререндер-страницы подтягивают свежие цены из KV.
+  schedule:
+    - cron: "0 2 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Разрешаем только один параллельный деплой
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # repository_dispatch и schedule GitHub запускает на ветке по умолчанию.
+          # Сайт живёт в test2, поэтому для них собираем именно её.
+          ref: ${{ github.event_name == 'push' && github.ref || 'test2' }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm install
+
+      - name: Build (Tailwind + copy to dist)
+        run: npm run build
+
+      # Список страниц, изменившихся с прошлой сборки, — для job indexnow.
+      # Отдельным артефактом: в сам сайт (dist) этот файл не публикуется.
+      - name: Save IndexNow list
+        uses: actions/upload-artifact@v4
+        with:
+          name: indexnow-urls
+          path: indexnow-urls.json
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Сообщаем Яндексу (и Bing) об изменённых страницах по протоколу IndexNow.
+  # Строго ПОСЛЕ публикации: поисковик сразу проверяет файл ключа в корне сайта
+  # и сами страницы. Ошибка здесь сайт не ломает — он уже опубликован.
+  indexnow:
+    needs: deploy
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.ref || 'test2' }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get IndexNow list
+        uses: actions/download-artifact@v4
+        with:
+          name: indexnow-urls
+          path: .
+        continue-on-error: true
+
+      # Пауза, чтобы CDN GitHub Pages успел раздать новую версию сайта.
+      - name: Wait for CDN
+        run: sleep 60
+
+      - name: Send to IndexNow
+        run: node scripts/indexnow.mjs

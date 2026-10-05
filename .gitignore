@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+*.log
+.DS_Store
+.env
+
+# Список изменённых страниц для IndexNow — пишет сборка, читает scripts/indexnow.mjs
+indexnow-urls.json
