@@ -1,0 +1,34 @@
+# Apple и точка
+
+> Магазин техники Apple и Samsung в Таганроге: iPhone, Samsung Galaxy, iPad, MacBook,
+> Apple Watch, AirPods, аксессуары. Новые устройства в заводской упаковке и б/у.
+> Trade-In (старое устройство в зачёт нового), кредит через банк-партнёр,
+> гарантия магазина, самовывоз и доставка по городу.
+
+## Об организации
+- Название: Apple и точка
+- Адрес: Таганрог, площадь Мира 7, ТЦ «Мармелад», 1 этаж
+- Режим работы: ежедневно с 10:00 до 20:00
+- Сайт: https://appleitochka.ru
+- Не является официальным сайтом Apple Inc.
+
+## Условия
+- Гарантия магазина: 12 месяцев на новые устройства, 3 месяца на наушники и б/у.
+- Оплата: наличными, картой или в кредит через банк-партнёр. Рассрочки нет.
+- Trade-In: старое устройство принимаем в зачёт нового, сумму называет менеджер после осмотра.
+- Наличие: у каждой модификации в карточке указано «В наличии» или «Под заказ».
+
+## Разделы
+- Каталог: https://appleitochka.ru/
+- Карточка товара: https://appleitochka.ru/p/<id>/
+- Trade-In: https://appleitochka.ru/trade-in/
+- Кредит: https://appleitochka.ru/kredit/
+- Гарантия: https://appleitochka.ru/garantiya/
+- Доставка и оплата: https://appleitochka.ru/dostavka/
+- Контакты: https://appleitochka.ru/kontakty/
+
+## Данные для интеграций
+- Актуальные цены и наличие (JSON): https://api.appleitochka.ru/api/products
+- Товарный фид (Yandex YML): https://appleitochka.ru/feed-yandex.yml
+- Товарный фид (Google Merchant): https://appleitochka.ru/feed-google.xml
+- Карта сайта: https://appleitochka.ru/sitemap.xml
