@@ -8,7 +8,7 @@
 #
 # Нужно один раз:
 #   секрет    CLOUDFLARE_API_TOKEN   (шаблон «Edit Cloudflare Workers»)
-#   переменная CLOUDFLARE_ACCOUNT_ID
+#   переменная CLOUDFLARE_ACCOUNT_ID (необязательно, иначе берётся из токена)
 #   переменная CLOUDFLARE_WORKER_NAME (необязательно, по умолчанию apple-orders-api)
 name: Deploy worker
 
@@ -42,9 +42,16 @@ jobs:
           CF_WORKER: ${{ vars.CLOUDFLARE_WORKER_NAME || 'apple-orders-api' }}
         run: |
           set -euo pipefail
-          if [ -z "${CF_TOKEN}" ] || [ -z "${CF_ACCOUNT}" ]; then
-            echo "::warning title=Воркер не загружен::Нет секрета CLOUDFLARE_API_TOKEN или переменной CLOUDFLARE_ACCOUNT_ID"
+          if [ -z "${CF_TOKEN}" ]; then
+            echo "::warning title=Воркер не загружен::Нет секрета CLOUDFLARE_API_TOKEN"
             exit 0
+          fi
+          # Account ID необязателен: если переменной нет, берём аккаунт, к
+          # которому выдан токен (у шаблона «Edit Cloudflare Workers» есть
+          # право читать аккаунт).
+          if [ -z "${CF_ACCOUNT}" ]; then
+            CF_ACCOUNT=$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "https://api.cloudflare.com/client/v4/accounts?per_page=5" | jq -r '.result[0].id // empty')
+            [ -n "${CF_ACCOUNT}" ] || { echo "::error::Не удалось определить Account ID, задайте переменную CLOUDFLARE_ACCOUNT_ID"; exit 1; }
           fi
           API="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers/scripts/${CF_WORKER}"
           settings=$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${API}/settings")
