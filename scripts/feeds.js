@@ -22,7 +22,9 @@ function offersOf(catalog) {
 
 function pica(p, SITE) {
   const rel = Array.isArray(p.images) && p.images[0] ? String(p.images[0]).replace(/^\//, "") : "apple-touch-icon.png";
-  return `${SITE}/${rel}`;
+  // JPG-копия (сборка кладёт её рядом с каждым .webp): Яндекс Директ и Маркет
+  // надёжно принимают JPG/PNG, а WebP в товарных фидах берут не везде.
+  return `${SITE}/${rel.replace(/\.webp$/i, ".jpg")}`;
 }
 const purl = (p, SITE) => `${SITE}/p/${encodeURIComponent(p.id)}/`;
 // Отображаемая метка SIM (как на сайте): eSIM → SIM, «2 eSIM» → «2 SIM».
