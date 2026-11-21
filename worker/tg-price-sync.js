@@ -245,6 +245,13 @@ function simFor(offer, brand, series) {
   if (brand === "Samsung" && offer.modelCode && /\/DS\b/i.test(offer.modelCode)) {
     return "2 SIM + eSIM";
   }
+  // 2б) Samsung без кода модели в строке («S26 Ultra 12/256Gb Black 🇦🇪»). Флаг
+  //    здесь не таблица iPhone: S-серия для ОАЭ, Казахстана и Таиланда это
+  //    глобальная версия /DS (два nano-SIM + eSIM), так она и заведена в
+  //    каталоге. Раньше такие строки шли по таблице iPhone, получали
+  //    «SIM + eSIM» и не находили свои позиции. Страны, которых нет в
+  //    FLAG_REGION (🇬🇹, 🇵🇦…), не угадываем: строка уходит на ручной выбор.
+  if (brand === "Samsung") return offer.flag && FLAG_REGION[offer.flag] ? "2 SIM + eSIM" : null;
   // 3) iPhone Air — eSIM-only во всех регионах, флаг не важен.
   const table = simTableFor(series);
   if (table === "air") return "2 eSIM";

@@ -23,6 +23,7 @@
 //   TG_AUTO_APPLY       — "off": не применять цены по расписанию, только готовить
 //                         предложения (по умолчанию включено, с 0.67.0)
 //   TG_AUTO_MAX_PCT     — наибольшее изменение цены без человека, % (по умолчанию 10)
+//   TG_AUTO_ADD         — "off": не заводить недостающие варианты сам (по умолчанию включено, с 0.68.0)
 //   SITE_URL, SHOP_NAME — для товарных фидов
 //   CARD_RATIO          — цена по карте = наличные × это число (по умолчанию 1.15)
 //   GH_DISPATCH_TOKEN   (секрет, опц.) — GitHub fine-grained token с правом
@@ -821,7 +822,7 @@ async function runTgSync(env, cronExpr, channelOverride, pagesOverride) {
 
     // Автоприменение (0.67.0): небольшие изменения однозначных позиций ставятся
     // на витрину сразу, остальное ждёт /prices.html. Выключается TG_AUTO_APPLY=off.
-    log.auto = await autoApplyPrices(env, result, { channel, newestAt });
+    log.auto = await autoApplyPrices(env, result, { channel, newestAt, offers });
 
     log.ok = true;
     log.stats = result.stats;
@@ -879,7 +880,7 @@ async function notifyOperator(env, text, dedupeKey) {
 // копия каталога уходит в «Историю» CRM, после записи сайт пересобирается, а
 // продавцу в Telegram приходит сводка: что поменялось и что ждёт проверки.
 // Закупочные цены в сообщение не попадают, только розница.
-async function autoApplyPrices(env, result, { channel, newestAt } = {}) {
+async function autoApplyPrices(env, result, { channel, newestAt, offers } = {}) {
   if (String(env.TG_AUTO_APPLY || "on").trim().toLowerCase() === "off") return { mode: "off" };
   const maxDeltaPct = Number(env.TG_AUTO_MAX_PCT) > 0 ? Number(env.TG_AUTO_MAX_PCT) : undefined;
   const pick = pickAutoApply(result, { maxDeltaPct, newestAt });
@@ -913,7 +914,6 @@ async function autoApplyPrices(env, result, { channel, newestAt } = {}) {
     const ratio = Number(env.CARD_RATIO) > 1 ? Number(env.CARD_RATIO) : 1.15;
     const { catalog: next, applied } = applyProposals(JSON.parse(rawNow), result.proposals || [], pick.ids, null, ratio);
     await env.PRODUCTS.put(KV_KEY, JSON.stringify(next));
-    await triggerRebuild(env);
     summary.applied = applied;
     summary.up = pick.picked.filter((p) => p.retail > p.oldPrice).length;
     summary.down = pick.picked.filter((p) => p.retail < p.oldPrice).length;
@@ -928,6 +928,45 @@ async function autoApplyPrices(env, result, { channel, newestAt } = {}) {
         await env.PRODUCTS.put(TG_PROPOSALS_KEY, JSON.stringify({ ...st, proposals: (st.proposals || []).filter((p) => !done.has(p.id)) }));
       }
     } catch {}
+  }
+
+  // Недостающие варианты (0.68.0): другой объём памяти или комплектация SIM у
+  // модели и цвета, которые уже есть в каталоге с фото. Тот же planNewVariants,
+  // что у кнопки «Показать, что можно добавить» на /prices.html: копия
+  // соседнего варианта, цена по прайсу с наценкой, статус «под заказ».
+  // Модели старше 16-й серии не заводим: их магазин возит только под заказ
+  // по запросу. Новые цвета и модели без фото сюда не попадают, о них пишется
+  // в сводке. Выключается TG_AUTO_ADD = "off".
+  summary.added = 0;
+  let addedLabels = [];
+  if (String(env.TG_AUTO_ADD || "on").trim().toLowerCase() !== "off" && Array.isArray(offers) && offers.length) {
+    try {
+      const rawCat = await env.PRODUCTS.get(KV_KEY);
+      const ratio = Number(env.CARD_RATIO) > 1 ? Number(env.CARD_RATIO) : 1.15;
+      const plan = planNewVariants(offers, JSON.parse(rawCat), { cardRatio: ratio });
+      const OLD = /iPhone\s*(1[0-5]|SE|X[RS]?)\b/i;
+      plan.add = plan.add.filter((a) => !OLD.test(String(a.product.series || a.label))).slice(0, 80);
+      if (plan.add.length) {
+        await pushHistory(env, rawCat, `перед автодобавлением вариантов (${plan.add.length})`);
+        const { catalog: next, added } = addVariants(JSON.parse(rawCat), plan);
+        await env.PRODUCTS.put(KV_KEY, JSON.stringify(next));
+        summary.added = added;
+        addedLabels = plan.add.map((a) => `${a.label} ${a.product.sim}`);
+      }
+      summary.noPhoto = (plan.skipped || []).filter((x) => /нужны фото/.test(x.reason)).length;
+    } catch (e) {
+      summary.addError = String((e && e.message) || e).slice(0, 200);
+    }
+  }
+  if (summary.applied || summary.added) await triggerRebuild(env);
+
+  if (summary.added) {
+    await notifyOperator(env, [
+      `➕ Добавлено вариантов по прайсу @${channel}: ${summary.added} (статус «под заказ»).`,
+      ...addedLabels.slice(0, 8).map((l) => "• " + l),
+      addedLabels.length > 8 ? `…и ещё ${addedLabels.length - 8}` : "",
+      "Откат: CRM → История.",
+    ].filter(Boolean).join("\n"));
   }
 
   if (summary.applied || (reviewChanged && reviewList.length)) {

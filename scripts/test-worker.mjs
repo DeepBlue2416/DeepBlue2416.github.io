@@ -858,6 +858,15 @@ console.log("\n── АВТОПРИМЕНЕНИЕ ПРАЙСА (0.67.0) ──"
     void p;
   });
 }
+
+console.log("\n── SAMSUNG: КОМПЛЕКТАЦИЯ ПО ФЛАГУ (0.68.0) ──");
+await check("S26 Ultra из ОАЭ без кода модели сопоставляется с версией /DS", async () => {
+  const { simFor } = await import(path.join(ROOT, "worker/tg-price-sync.js"));
+  eq(simFor({ flag: "🇦🇪" }, "Samsung", "Galaxy S26 Ultra"), "2 SIM + eSIM", "ОАЭ");
+  eq(simFor({ flag: "🇰🇿" }, "Samsung", "Galaxy S26 Ultra"), "2 SIM + eSIM", "Казахстан");
+  eq(simFor({ flag: "🇬🇹" }, "Samsung", "Galaxy S26 Ultra"), null, "неизвестная страна на ручной выбор");
+  eq(simFor({ flag: "🇦🇪" }, "Apple", "iPhone 16"), "SIM + eSIM", "iPhone по-прежнему по таблице");
+});
 console.log("\n" + "─".repeat(50));
 console.log(`ПРОЙДЕНО: ${pass}   ПРОВАЛЕНО: ${fail}`);
 if (tmeCalls) console.log(`(обращений к t.me: ${tmeCalls}, ответ подделан)`);
