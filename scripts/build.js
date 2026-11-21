@@ -451,7 +451,15 @@ async function bustCache(dir) {
 
   let n = 0;
   for (const f of files) {
-    const html = await readFile(f, "utf8");
+    let html0 = await readFile(f, "utf8");
+    // Тёмная тема сайта выключена (0.19), но Chrome с «Auto Dark Mode» и
+    // расширения вроде Dark Reader перекрашивают страницу сами: фон чёрный, а
+    // фото товаров остаются белыми прямоугольниками. color-scheme «only light»
+    // отключает автозатемнение Chrome, darkreader-lock — Dark Reader.
+    if (!/name="color-scheme"/.test(html0)) {
+      html0 = html0.replace(/<head([^>]*)>/i, '<head$1>\n  <meta name="color-scheme" content="only light">\n  <meta name="darkreader-lock">');
+    }
+    const html = html0;
     // Путь в HTML относительный (./js/app.js или ../../js/app.js) — приводим
     // к пути от корня dist, чтобы хэш считался от того же файла.
     // Префикс бывает трёх видов: «./», «../../» и «/» от корня (так подключают
@@ -462,7 +470,7 @@ async function bustCache(dir) {
         const h = await hashOf(rel);
         return h ? `${attr}="${prefix}${rel}?v=${h}"` : m;
       });
-    if (out !== html) { await writeFile(f, out); n++; }
+    if (out !== html || html0 !== (await readFile(f, "utf8"))) { await writeFile(f, out); n++; }
   }
   console.log(`✓ версии скриптов: обновлено ссылок в ${n} страницах`);
 }
