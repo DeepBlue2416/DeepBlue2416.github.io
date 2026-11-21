@@ -8,7 +8,9 @@
 //
 // Переменные. В веб-морде: Workers & Pages → воркер → Settings → Variables.
 //   TELEGRAM_BOT_TOKEN  (секрет) — токен бота @BotFather
-//   TELEGRAM_CHAT_ID    (секрет) — id чата/группы оператора
+//   TELEGRAM_CHAT_ID    (секрет) — id чата/группы оператора: служебные сводки
+//   TG_LEADS_CHAT_ID    — id группы для заявок с сайта (с 0.68.5; если не задан
+//                         или группа недоступна, заявки идут в TELEGRAM_CHAT_ID)
 //   ADMIN_TOKEN         (секрет) — пароль для /admin.html и /prices.html
 //   TURNSTILE_SECRET    (секрет, опц.) — Cloudflare Turnstile
 //   TG_WEBHOOK_SECRET   (секрет, опц., нужен для кнопок под лидом)
@@ -624,13 +626,17 @@ async function handleLead(request, env, cors) {
     return json({ error: "telegram_not_configured" }, 500, cors);
   }
 
-  const res = await tgCall(env, "sendMessage", {
-    chat_id: env.TELEGRAM_CHAT_ID,
-    text,
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-    reply_markup: leadKeyboard(np, "new"),
-  });
+  // Заявки идут в отдельную группу (TG_LEADS_CHAT_ID), чтобы не теряться среди
+  // сводок по каталогу. Если группа не задана или бот не может туда написать
+  // (не добавлен, группу преобразовали в супергруппу и id сменился), заявка
+  // уходит в основной чат: потерять клиента хуже, чем написать не туда.
+  const leadMsg = { text, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: leadKeyboard(np, "new") };
+  const leadsChat = String(env.TG_LEADS_CHAT_ID || "").trim();
+  let res = leadsChat ? await tgCall(env, "sendMessage", { chat_id: leadsChat, ...leadMsg }) : null;
+  if (!res || !res.ok) {
+    if (leadsChat) console.warn("[lead] TG_LEADS_CHAT_ID недоступен:", res && res.description);
+    res = await tgCall(env, "sendMessage", { chat_id: env.TELEGRAM_CHAT_ID, ...leadMsg });
+  }
 
   if (!res || !res.ok) {
     return json({ success: false, error: "telegram_failed", detail: res && res.description }, 502, cors);
