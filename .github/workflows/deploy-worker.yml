@@ -1,0 +1,64 @@
+# Автодеплой воркера api.appleitochka.ru в Cloudflare.
+#
+# Срабатывает, когда в test2 меняется worker/index.bundled.js (или вручную:
+# Actions → Deploy worker → Run workflow). Загружает файл через API Cloudflare
+# с keep_bindings: переменные, секреты и KV, заданные в панели Cloudflare, не
+# трогаются. Расписание (Cron Triggers) хранится отдельно и тоже не меняется.
+# compatibility_date и флаги берутся из текущих настроек воркера.
+#
+# Нужно один раз:
+#   секрет    CLOUDFLARE_API_TOKEN   (шаблон «Edit Cloudflare Workers»)
+#   переменная CLOUDFLARE_ACCOUNT_ID
+#   переменная CLOUDFLARE_WORKER_NAME (необязательно, по умолчанию apple-orders-api)
+name: Deploy worker
+
+on:
+  push:
+    branches: [test2]
+    paths: [worker/index.bundled.js]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Tests
+        run: node scripts/test-worker.mjs
+
+      - name: Upload to Cloudflare
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CF_WORKER: ${{ vars.CLOUDFLARE_WORKER_NAME || 'apple-orders-api' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CF_TOKEN}" ] || [ -z "${CF_ACCOUNT}" ]; then
+            echo "::warning title=Воркер не загружен::Нет секрета CLOUDFLARE_API_TOKEN или переменной CLOUDFLARE_ACCOUNT_ID"
+            exit 0
+          fi
+          API="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers/scripts/${CF_WORKER}"
+          settings=$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${API}/settings")
+          meta=$(echo "$settings" | jq -c '{
+            main_module: "index.js",
+            keep_bindings: ["plain_text","secret_text","kv_namespace"],
+            compatibility_date: (.result.compatibility_date // "2024-09-01"),
+            compatibility_flags: (.result.compatibility_flags // [])
+          }')
+          echo "metadata: $meta"
+          resp=$(curl -sS -X PUT "${API}" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
+            -F "metadata=${meta};type=application/json" \
+            -F "index.js=@worker/index.bundled.js;filename=index.js;type=application/javascript+module")
+          echo "$resp" | jq '{success, errors, id: .result.id, modified: .result.modified_on}'
+          echo "$resp" | jq -e '.success == true' > /dev/null
+          echo "### Воркер ${CF_WORKER} обновлён ($(date -u +%F\ %T) UTC)" >> "$GITHUB_STEP_SUMMARY"

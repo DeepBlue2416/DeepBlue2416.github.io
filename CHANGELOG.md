@@ -3,6 +3,17 @@
 Все значимые изменения проекта «Apple и точка». Формат основан на
 [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/).
 
+## [0.68.1] – 2026-11-21 – Воркер загружается в Cloudflare сам
+
+### Added
+- `.github/workflows/deploy-worker.yml`: при изменении `worker/index.bundled.js`
+  в test2 прогоняются тесты воркера, затем файл загружается в Cloudflare через
+  API. Переменные, секреты, KV и расписание из панели сохраняются
+  (keep_bindings), compatibility_date берётся из текущих настроек воркера.
+  Нужны секрет `CLOUDFLARE_API_TOKEN` (шаблон «Edit Cloudflare Workers») и
+  переменная `CLOUDFLARE_ACCOUNT_ID`; без них шаг пропускается с
+  предупреждением. Запуск вручную: Actions → Deploy worker → Run workflow.
+
 ## [0.68.0] – 2026-11-21 – Недостающие варианты заводятся сами, исправлен Samsung
 
 ### Added
