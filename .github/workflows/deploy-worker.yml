@@ -6,6 +6,9 @@
 # трогаются. Расписание (Cron Triggers) хранится отдельно и тоже не меняется.
 # compatibility_date и флаги берутся из текущих настроек воркера.
 #
+# Обычные переменные воркера можно задавать в worker/vars.json (в Git, без
+# секретов): они добавляются к заданным в панели.
+#
 # Нужно один раз:
 #   секрет    CLOUDFLARE_API_TOKEN   (шаблон «Edit Cloudflare Workers»)
 #   переменная CLOUDFLARE_ACCOUNT_ID (необязательно, иначе берётся из токена)
@@ -15,7 +18,7 @@ name: Deploy worker
 on:
   push:
     branches: [test2]
-    paths: [worker/index.bundled.js]
+    paths: [worker/index.bundled.js, worker/vars.json]
   workflow_dispatch:
 
 concurrency:
@@ -55,7 +58,12 @@ jobs:
           fi
           API="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers/scripts/${CF_WORKER}"
           settings=$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${API}/settings")
-          meta=$(echo "$settings" | jq -c '{
+          # Обычные (не секретные) переменные из worker/vars.json добавляются к
+          # тем, что уже заданы в панели; совпадающие имена перезаписываются.
+          extra='[]'
+          [ -f worker/vars.json ] && extra=$(jq -c '[to_entries[] | {type: "plain_text", name: .key, text: (.value|tostring)}]' worker/vars.json)
+          meta=$(echo "$settings" | jq -c --argjson extra "$extra" '{
+            bindings: $extra,
             main_module: "index.js",
             keep_bindings: ["plain_text","secret_text","kv_namespace"],
             compatibility_date: (.result.compatibility_date // "2024-09-01"),
