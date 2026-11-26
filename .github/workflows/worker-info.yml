@@ -1,0 +1,26 @@
+# Диагностика воркера: какие переменные, секреты и расписание сейчас заданы в
+# Cloudflare. Значения секретов API не отдаёт, видны только их имена.
+# Запуск: Actions → Worker info → Run workflow.
+name: Worker info
+
+on:
+  workflow_dispatch:
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Settings
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CF_WORKER: ${{ vars.CLOUDFLARE_WORKER_NAME || 'apple-orders-api' }}
+        run: |
+          set -euo pipefail
+          H="Authorization: Bearer ${CF_TOKEN}"
+          [ -n "${CF_ACCOUNT}" ] || CF_ACCOUNT=$(curl -fsS -H "$H" "https://api.cloudflare.com/client/v4/accounts?per_page=5" | jq -r '.result[0].id')
+          API="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers/scripts/${CF_WORKER}"
+          echo "== bindings"
+          curl -fsS -H "$H" "${API}/settings" | jq -r '.result.bindings[] | [.type, .name, (if .type=="plain_text" then .text else "" end)] | @tsv'
+          echo "== cron"
+          curl -fsS -H "$H" "${API}/schedules" | jq -r '.result.schedules[]?.cron'
