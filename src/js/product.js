@@ -160,6 +160,7 @@
             return `<button class="btn-pill inline-flex items-center ${active ? "is-active" : ""} ${st === "na" ? "opacity-45" : ""}" data-pick="${dim}" data-val="${escA(val)}">${disp}${dot}</button>`;
           }).join("")}
         </div>
+        ${dim === "sim" && /^(2 )?eSIM$/.test(String(p.sim || "").trim()) ? `<div class="text-xs text-ink-soft mt-2">Без слота под SIM-карту: работают только электронные eSIM.</div>` : ""}
       </div>`;
   }
 

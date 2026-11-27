@@ -28,7 +28,7 @@ function pica(p, SITE) {
 }
 const purl = (p, SITE) => `${SITE}/p/${encodeURIComponent(p.id)}/`;
 // Отображаемая метка SIM (как на сайте): eSIM → SIM, «2 eSIM» → «2 SIM».
-const simLabel = (s) => { const v = String(s ?? ""); return v.indexOf("+") >= 0 ? v : v.replace(/eSIM/g, "SIM"); };
+const simLabel = (s) => String(s ?? ""); // как в данных, см. window.simLabel в src/js/config.js
 // Регион входит в имя оффера: у региональных версий (напр. Samsung .../DS — ОАЭ,
 // Казахстан, Таиланд) совпадают модель+память+цвет+SIM, и без региона Яндекс/Google
 // получили бы несколько офферов с одинаковым названием.
