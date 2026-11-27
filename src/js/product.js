@@ -144,6 +144,9 @@
       </div>`;
   }
 
+  // Вариант без физического слота (2 eSIM / eSIM): под выбором SIM показываем подсказку.
+  const esimOnly = (p) => /^(2 )?eSIM$/.test(String((p && p.sim) || "").trim());
+
   // --- строка кнопок для storage / watchSize / sim ---
   function btnRow(p, vs, dims, dim, label, values) {
     if (values.length < 2 && !(values.length === 1)) return "";
@@ -160,7 +163,7 @@
             return `<button class="btn-pill inline-flex items-center ${active ? "is-active" : ""} ${st === "na" ? "opacity-45" : ""}" data-pick="${dim}" data-val="${escA(val)}">${disp}${dot}</button>`;
           }).join("")}
         </div>
-        ${dim === "sim" && /^(2 )?eSIM$/.test(String(p.sim || "").trim()) ? `<div class="text-xs text-ink-soft mt-2">Без слота под SIM-карту: работают только электронные eSIM.</div>` : ""}
+        ${dim === "sim" ? `<div data-esim-note class="text-xs text-ink-soft mt-2 ${esimOnly(p) ? "" : "hidden"}">Без слота под SIM-карту: работают только электронные eSIM.</div>` : ""}
       </div>`;
   }
 
@@ -389,6 +392,8 @@
       if (has) fadeSet($("[data-card]", root), money(window.cardPrice(p)));
     }
     $$("[data-color-label]", root).forEach((el) => (el.textContent = p.color));
+    const esimNote = $("[data-esim-note]", root);
+    if (esimNote) esimNote.classList.toggle("hidden", !esimOnly(p));
 
     $$("[data-pick]", root).forEach((b) => {
       const dim = b.dataset.pick, val = b.dataset.val;
