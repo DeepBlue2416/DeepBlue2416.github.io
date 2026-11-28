@@ -36,10 +36,14 @@ var CONFIG = {
   
 
   // Контакты оператора (FR-4.1)
+  // Куда ведёт «Оформить»: "telegram" — чат продавца с готовым сообщением,
+  // "form" — старая форма заявки с капчей (заявка приходит боту в группу).
+  orderVia: "telegram",
   contacts: {
     phone: "+7 989 536-06-84",
     phoneHref: "+79895360684",
     telegram: "https://t.me/aleksandr_tgn",   // без @: t.me/@user — нерабочая форма
+                                              // сюда же ведёт «Оформить» (orderVia)
     whatsapp: "https://wa.me/79895360684",
     vk: "https://vk.ru/appleitochka_tgn",
     // max: "https://max.ru/<аккаунт>",  // мессенджер MAX — заглушка убрана,

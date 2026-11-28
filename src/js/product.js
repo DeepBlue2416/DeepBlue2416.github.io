@@ -63,7 +63,10 @@
     if (vs.some((v) => v.sim && v.sim !== "—")) dims.push("sim");
     // Регион поставки (напр. 🇦🇪 ОАЭ / 🇰🇿 Казахстан / 🇹🇭 Таиланд у региональных
     // версий Samsung .../DS) — самостоятельное измерение матрицы, если у серии
-    // вообще встречаются товары с заполненным регионом.
+    // вообще встречаются товары с заполненным регионом. Без него у S26 Ultra
+    // White (ОАЭ, Казахстан, Таиланд) покупатель видел одну цену самой дешёвой
+    // версии и не мог выбрать другую.
+    if (vs.some((v) => v.region)) dims.push("region");
     return dims;
   }
 
@@ -130,7 +133,8 @@
 
   // --- строка выбора цвета (свотчи) ---
   function colorRow(p, vs, dims) {
-    const cols = uniqBy(vs.filter((v) => v.colorHex), (v) => v.colorHex);
+    // По названию цвета: разный colorHex у одного цвета давал два кружка «White».
+    const cols = uniqBy(vs.filter((v) => v.colorHex), (v) => v.color || v.colorHex);
     if (cols.length < 2) return `<div class="mt-1 text-sm text-ink-mute">Цвет: <b class="text-ink-soft" data-color-label>${p.color}</b></div>`;
     return `
       <div class="mt-5">
@@ -221,6 +225,7 @@
     const storages = uniqBy(vs.filter((v) => v.storage && v.storage !== "—"), (v) => v.storage).map((v) => v.storage).sort((a, b) => rank(a) - rank(b));
     const sizes = Array.from(new Set(vs.map((v) => v.watchSize).filter(Boolean))).sort((a, b) => parseInt(a) - parseInt(b));
     const sims = uniqBy(vs.filter((v) => v.sim && v.sim !== "—"), (v) => v.sim).map((v) => v.sim);
+    const regions = uniqBy(vs.filter((v) => v.region), (v) => v.region).map((v) => v.region);
 
     return `
       <nav class="crumbs text-sm text-ink-mute mb-6 flex items-center gap-1.5 flex-wrap">
@@ -253,6 +258,7 @@
           ${btnRow(p, vs, dims, "storage", "Память", storages)}
           ${btnRow(p, vs, dims, "watchSize", "Размер корпуса", sizes)}
           ${btnRow(p, vs, dims, "sim", "SIM-карта", sims)}
+          ${regions.length > 1 ? btnRow(p, vs, dims, "region", "Версия (страна)", regions) : ""}
 
           <div class="mt-6 rounded-3xl bg-cloud-card shadow-card p-5">
             <div class="flex items-end justify-between gap-4 flex-wrap">

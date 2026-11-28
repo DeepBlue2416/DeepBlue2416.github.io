@@ -298,7 +298,9 @@ function renderModifications() {
   grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5";
   let list = sortList(applyFilters(state.all.filter((p) => p.series === state.series && (window.catOf ? window.catOf(p) : p.category) === state.category)));
   const byColor = new Map();
-  list.forEach((p) => { if (!byColor.has(p.colorHex)) byColor.set(p.colorHex, []); byColor.get(p.colorHex).push(p); });
+  // Группировка по названию цвета, а не по оттенку: у одного «White» в разных
+  // позициях может быть записан чуть разный colorHex, и карточка раздваивалась.
+  list.forEach((p) => { const k = p.color || p.colorHex; if (!byColor.has(k)) byColor.set(k, []); byColor.get(k).push(p); });
   const cards = [...byColor.values()].map((vs) => ({ rep: pickRep(vs), variants: vs }));
   if (!cards.length) {
     grid.innerHTML = "";
@@ -614,7 +616,7 @@ function colorSwatches(rep, variants) {
   const seen = new Set();
   const cols = [];
   for (const v of variants) {
-    if (v.colorHex && !seen.has(v.colorHex)) { seen.add(v.colorHex); cols.push(v); }
+    if (v.colorHex && !seen.has(v.color || v.colorHex)) { seen.add(v.color || v.colorHex); cols.push(v); }
   }
   if (cols.length < 2) return "";
   return `<div class="flex items-center gap-1.5 mt-3 relative z-10" data-swatches>
@@ -975,8 +977,33 @@ function openModal(html, opts = {}) {
   return { close, root };
 }
 
+// ---- Заказ через Telegram (с 0.69.0) ----
+// Вместо формы заявки «Оформить» открывает чат продавца в Telegram с готовым
+// сообщением: модель, память, цвет, SIM, регион, цена и ссылка на товар.
+// Покупателю не нужно вводить телефон и проходить капчу, продавец сразу видит,
+// о чём речь, и общается с клиентом в привычном месте. Старая форма осталась:
+// CONFIG.orderVia = "form" возвращает её.
+function tgOrderText(p, presetText) {
+  if (!p) return presetText ? `Здравствуйте! ${presetText}` : "Здравствуйте! Хочу проконсультироваться по технике.";
+  const bits = [p.storage, p.watchSize, p.color, p.sim && p.sim !== "—" ? (window.simLabel ? window.simLabel(p.sim) : p.sim) : null, p.region]
+    .filter((x) => x && x !== "—");
+  const price = Number(p.priceCash) > 0 ? `\nЦена на сайте: ${new Intl.NumberFormat("ru-RU").format(p.priceCash)} ₽` : "";
+  const url = location.protocol.startsWith("http") ? `\n${location.origin}/p/${encodeURIComponent(p.id)}/` : "";
+  return `Здравствуйте! Хочу заказать: ${p.name}${bits.length ? ", " + bits.join(", ") : ""}.${price}${url}`;
+}
+function openTelegramOrder(productId, presetText = "") {
+  const all = (state && state.all && state.all.length ? state.all : ((window.__CATALOG__ || {}).products || []));
+  const p = productId ? all.find((x) => x.id === productId) : null;
+  const base = String((CONFIG.contacts && CONFIG.contacts.telegram) || "https://t.me/aleksandr_tgn").replace(/\/+$/, "");
+  const href = `${base}?text=${encodeURIComponent(tgOrderText(p, presetText))}`;
+  if (window.ymGoal) window.ymGoal("order_telegram", p ? { product: p.name } : {});
+  const w = window.open(href, "_blank", "noopener");
+  if (!w) location.href = href; // встроенные браузеры (ВК, Telegram) блокируют новое окно
+}
+
 // ---- Лид-форма (FR-4.1 + FR-5.1: согласие 152-ФЗ) ----
 function openLeadModal(productId, presetText = "") {
+  if ((CONFIG.orderVia || "telegram") !== "form") return openTelegramOrder(productId, presetText);
   const p = state.all.find((x) => x.id === productId);
   const title = p ? `Заявка: ${p.name}` : "Оставить заявку";
   const sub = p
