@@ -979,13 +979,14 @@ function openModal(html, opts = {}) {
 
 // ---- Заказ через Telegram (с 0.69.0) ----
 // Вместо формы заявки «Оформить» открывает чат продавца в Telegram с готовым
-// сообщением: модель, память, цвет, SIM, регион, цена и ссылка на товар.
+// сообщением: модель, память, цвет, SIM, цена и ссылка на товар (страну
+// покупателю не показываем, она видна продавцу по ссылке).
 // Покупателю не нужно вводить телефон и проходить капчу, продавец сразу видит,
 // о чём речь, и общается с клиентом в привычном месте. Старая форма осталась:
 // CONFIG.orderVia = "form" возвращает её.
 function tgOrderText(p, presetText) {
   if (!p) return presetText ? `Здравствуйте! ${presetText}` : "Здравствуйте! Хочу проконсультироваться по технике.";
-  const bits = [p.storage, p.watchSize, p.color, p.sim && p.sim !== "—" ? (window.simLabel ? window.simLabel(p.sim) : p.sim) : null, p.region]
+  const bits = [p.storage, p.watchSize, p.color, p.sim && p.sim !== "—" ? (window.simLabel ? window.simLabel(p.sim) : p.sim) : null]
     .filter((x) => x && x !== "—");
   const price = Number(p.priceCash) > 0 ? `\nЦена на сайте: ${new Intl.NumberFormat("ru-RU").format(p.priceCash)} ₽` : "";
   const url = location.protocol.startsWith("http") ? `\n${location.origin}/p/${encodeURIComponent(p.id)}/` : "";
