@@ -1000,6 +1000,7 @@ function openLeadModal(productId, presetText = "") {
       <div id="turnstile-container" class="my-2 flex justify-center"></div>
 
       <button type="submit" class="btn-primary w-full">Отправить заявку</button>
+      <p class="text-xs text-center text-ink-mute">Заявки обрабатываем ежедневно с 10:00 до 22:00.</p>
       <p id="lead-status" class="text-sm text-center"></p>
     </form>
     <div class="hairline mt-6 pt-5 flex flex-wrap gap-2 justify-center">
@@ -1109,7 +1110,7 @@ function openLeadModal(productId, presetText = "") {
         window.open(`${CONFIG.contacts.telegram}?text=${text}`, "_blank");
       }
 
-      status.textContent = "Заявка отправлена! Мы скоро свяжемся с вами.";
+      status.textContent = "Заявка отправлена! Свяжемся с вами ежедневно с 10:00 до 22:00.";
       status.className = "text-sm text-center text-apple-green";
       // Цель Метрики. Вызов безопасен, если счётчика нет: ym не определён и
       // условие просто не выполнится.
@@ -1273,7 +1274,7 @@ async function openTradeInModal() {
 function openCallbackModal() {
   const html = `
     <h2 class="text-2xl font-semibold tracking-tight">Заказать звонок</h2>
-    <p class="text-ink-mute mt-1">Оставьте номер, перезвоним в течение нескольких минут.</p>
+    <p class="text-ink-mute mt-1">Оставьте номер, перезвоним в течение нескольких минут. Звонки и заявки ежедневно с 10:00 до 22:00.</p>
     <form id="cb-form" class="mt-6 space-y-4" novalidate>
       <input class="field" name="name" placeholder="Как к вам обращаться (необязательно)" autocomplete="name" />
       <input class="field" type="tel" name="phone" inputmode="tel" autocomplete="tel" required />
@@ -1318,7 +1319,7 @@ function openCallbackModal() {
       } else {
         window.open(`${CONFIG.contacts.telegram}?text=${encodeURIComponent("Обратный звонок%0AИмя: " + data.name + "%0AТелефон: " + data.phone)}`, "_blank");
       }
-      status.textContent = "Заявка принята! Скоро перезвоним."; status.className = "text-sm text-center text-apple-green";
+      status.textContent = "Заявка принята! Перезвоним ежедневно с 10:00 до 22:00."; status.className = "text-sm text-center text-apple-green";
       form.reset(); restoreBtn();
       if (window.turnstile && wid) turnstile.reset(wid);
       setTimeout(close, 1600);
@@ -1675,7 +1676,7 @@ const FAQ_ITEMS = [
   { q: "Можно купить в кредит?", a: "Да, оформляем кредит через банк-партнёр. Сумму, ставку, срок и итоговую переплату назовёт оператор при оформлении: условия зависят от решения банка. Рассрочки у нас нет." },
   { q: "Какая гарантия?", a: "Гарантия магазина: 12 месяцев на новые смартфоны, планшеты, ноутбуки и часы, 3 месяца на наушники и на технику, бывшую в употреблении." },
   { q: "Доставка и сроки?", a: "Товары в наличии доступны сразу, под заказ привозим за 1 день. Есть доставка по Таганрогу и самовывоз из магазина." },
-  { q: "Как оформить заказ?", a: "Нажмите «Оформить» в карточке товара и оставьте имя и телефон, оператор свяжется в течение нескольких минут. Также можно написать в Telegram/WhatsApp или позвонить." },
+  { q: "Как оформить заказ?", a: "Нажмите «Оформить» в карточке товара и оставьте имя и телефон, оператор свяжется в течение нескольких минут (заявки обрабатываем ежедневно с 10:00 до 22:00). Также можно написать в Telegram/WhatsApp или позвонить." },
 ];
 function renderFaq() {
   const list = $("#faq-list");
